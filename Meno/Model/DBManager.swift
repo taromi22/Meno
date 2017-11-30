@@ -11,11 +11,18 @@ import FMDB
 
 class DBManager: NSObject {
     var db: FMDatabase? = nil
+    private(set) var filePath: String?
+    private(set) var currentDirectory: String?
     
-    func open(filePath: URL, completed: (Bool) -> Void) {
-        db = FMDatabase(url: filePath)
+    func open(url: URL, completed: (Bool) -> Void) {
+        db = FMDatabase(url: url)
         
         let result = db!.open()
+        
+        if result {
+            self.filePath = url.path
+            self.currentDirectory = filePath?.deletingLastPathComponent
+        }
         completed(result)
     }
     
@@ -35,20 +42,20 @@ class DBManager: NSObject {
         return profiles
     }
     
-    func getNote(id: Int) -> String {
+    func getNote(id: Int) -> Data? {
         let results = db?.executeQuery("SELECT TEXT FROM ITEMS WHERE ID=\(id)", withParameterDictionary: nil)
         
         if let results = results {
             results.next()
-            return results.string(forColumn: "TEXT") ?? ""
+            return results.data(forColumn: "TEXT")
         }
         
-        return ""
+        return nil
     }
     
     @discardableResult
-    func saveNote(id: Int, content: String) -> Bool {
-        return db!.executeUpdate("UPDATE ITEMS SET TEXT=\"\(content)\" WHERE ID=\(id)", withParameterDictionary: [:])
+    func saveNote(id: Int, content: Data) -> Bool {
+        return db!.executeUpdate("UPDATE ITEMS SET TEXT=? WHERE ID=\(id)", withArgumentsIn: [content])
     }
     
     func addNew() -> Int? {

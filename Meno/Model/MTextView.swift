@@ -33,32 +33,35 @@ class MTextView: NSTextView {
         super.draw(dirtyRect)
     }
     
-    func shouldAllowDrag(_ draggingInfo: NSDraggingInfo) -> Bool {
+    func shouldHandleDrag(_ draggingInfo: NSDraggingInfo) -> Bool {
         let pboard = draggingInfo.draggingPasteboard()
         
-        if draggingInfo.draggingSource() as AnyObject? === self {
-            return false
-        }
-        if pboard.canReadObject(forClasses: [NSURL.self], options: nil) {
+        if pboard.canReadObject(forClasses: [NSURL.self], options: nil) &&
+            draggingInfo.draggingSource() as AnyObject? !== self {
             return true
         }
         return false
     }
     
     override func draggingEntered(_ sender: NSDraggingInfo) -> NSDragOperation {
-        return shouldAllowDrag(sender) ? [.link] : []
-    }
-    
-    override func draggingExited(_ sender: NSDraggingInfo?) {
-        
+        return shouldHandleDrag(sender) ? [.link] : super.draggingEntered(sender)
     }
     
     override func prepareForDragOperation(_ sender: NSDraggingInfo) -> Bool {
-        return shouldAllowDrag(sender)
+        if shouldHandleDrag(sender) {
+            return true
+        } else {
+            return super.prepareForDragOperation(sender)
+        }
     }
 
     override func performDragOperation(_ sender: NSDraggingInfo) -> Bool {
         let pboard = sender.draggingPasteboard()
+        
+        if !shouldHandleDrag(sender) {
+            return super.performDragOperation(sender)
+        }
+        
         let dropPoint = self.convert(sender.draggingLocation(), from: nil)
         let caretLocation = self.characterIndexForInsertion(at: dropPoint)
 
@@ -81,9 +84,7 @@ class MTextView: NSTextView {
             for url in urls {
                 if let path = url.path.removingPercentEncoding {
                     let cell = URLAttachmentCell()
-                    let textAttachment = NSTextAttachment(fileWrapper: nil)
-                    cell.stringValue = path
-                    cell.image = ws.icon(forFile: path)
+                    let textAttachment = NSTextAttachment(data: url.dataRepresentation, ofType: kUTTypeFileURL as String) // UTF8でエンコードされている
                     textAttachment.attachmentCell = cell
                     
                     let cellstring = NSAttributedString(attachment: textAttachment)
@@ -92,8 +93,6 @@ class MTextView: NSTextView {
             }
 
             self.display()
-
-
 
             return true
         }

@@ -54,9 +54,8 @@ class WindowController: NSWindowController, ItemsViewControllerDelegate {
             if response == .OK {
                 let url = openPanel.url!
                 
-                self.dbManager?.open(filePath: url) { (result) in
+                self.dbManager?.open(url: url) { (result) in
                     self.titlesViewController.setItems((self.dbManager?.getProfiles())!)
-                    
                 }
             }
         }

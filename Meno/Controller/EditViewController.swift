@@ -29,23 +29,17 @@ class EditViewController: NSViewController {
     
     func saveAndReload(id: Int) {
         // 保存処理
-        if let preId = self.showingId {
-            do {
-                let data = try self.textStorage!.data(from: NSRange(location: 0, length: self.textStorage!.length), documentAttributes: [.documentType: NSAttributedString.DocumentType.rtf])
-                let stringdata = String(data: data, encoding: .utf8) ?? ""
-                dbManager!.saveNote(id: preId, content: stringdata)
-            } catch { }
+        if  let preId = self.showingId {
+            let data = NSKeyedArchiver.archivedData(withRootObject: self.textStorage!)
+            dbManager!.saveNote(id: preId, content: data)
         }
         // 表示
-        let newstringdata = dbManager!.getNote(id: id)
-        if let newdata = newstringdata.data(using: .utf8) {
-            if let attr_string = NSAttributedString(rtf: newdata, documentAttributes: nil) {
-                self.textStorage!.setAttributedString(attr_string)
-            } else {
-                self.textStorage!.setAttributedString(NSAttributedString(string: ""))
-            }
+        let newdata = dbManager!.getNote(id: id)
+        if let newdata = newdata {
+            let atrstring = NSKeyedUnarchiver.unarchiveObject(with: newdata) as? NSAttributedString
+            
+            self.textStorage!.setAttributedString(atrstring ?? NSAttributedString(string: ""))
         }
         self.showingId = id
-        
     }
 }
