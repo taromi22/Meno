@@ -42,24 +42,32 @@ class DBManager: NSObject {
         return profiles
     }
     
-    func getNote(id: Int) -> Data? {
+    func getNote(id: Int) -> NSAttributedString? {
         let results = db?.executeQuery("SELECT TEXT FROM ITEMS WHERE ID=\(id)", withParameterDictionary: nil)
         
         if let results = results {
             results.next()
-            return results.data(forColumn: "TEXT")
+            if let data = results.data(forColumn: "TEXT") {
+                return NSKeyedUnarchiver.unarchiveObject(with: data) as? NSAttributedString
+            } else {
+                return nil
+            }
         }
         
         return nil
     }
     
     @discardableResult
-    func saveNote(id: Int, content: Data) -> Bool {
-        return db!.executeUpdate("UPDATE ITEMS SET TEXT=? WHERE ID=\(id)", withArgumentsIn: [content])
+    func saveNote(id: Int, content: NSAttributedString) -> Bool {
+        let data = NSKeyedArchiver.archivedData(withRootObject: content)
+        
+        return db!.executeUpdate("UPDATE ITEMS SET TEXT=? WHERE ID=\(id)", withArgumentsIn: [data])
     }
     
     func addNew() -> Int? {
-        if db!.executeUpdate("INSERT INTO ITEMS DEFAULT VALUES", withParameterDictionary: [:]) {
+        
+        
+        if db!.executeUpdate("INSERT INTO ITEMS(TEXT) VALUES(?)", withArgumentsIn: [NSAttributedString()]) {
             let results = db!.executeQuery("SELECT ID FROM ITEMS WHERE ROWID = last_insert_rowid()", withParameterDictionary: nil)
             if let results = results {
                 results.next()

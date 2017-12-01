@@ -30,16 +30,11 @@ class EditViewController: NSViewController {
     func saveAndReload(id: Int) {
         // 保存処理
         if  let preId = self.showingId {
-            let data = NSKeyedArchiver.archivedData(withRootObject: self.textStorage!)
-            dbManager!.saveNote(id: preId, content: data)
+            dbManager!.saveNote(id: preId, content: self.textStorage!)
         }
         // 表示
-        let newdata = dbManager!.getNote(id: id)
-        if let newdata = newdata {
-            let atrstring = NSKeyedUnarchiver.unarchiveObject(with: newdata) as? NSAttributedString
-            
-            self.textStorage!.setAttributedString(atrstring ?? NSAttributedString(string: ""))
-        }
+        let atrstring = dbManager!.getNote(id: id)
+        self.textStorage!.setAttributedString(atrstring ?? NSAttributedString())
         self.showingId = id
     }
 }
