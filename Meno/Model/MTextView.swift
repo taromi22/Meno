@@ -8,7 +8,7 @@
 
 import Cocoa
 
-class MTextView: NSTextView {
+class MTextView: NSTextView, NSTextViewDelegate, NSTextStorageDelegate {
     
     override init(frame frameRect: NSRect) {
         super.init(frame: frameRect)
@@ -27,15 +27,13 @@ class MTextView: NSTextView {
     
     func commonInit() {
         self.registerForDraggedTypes([.fileURL])
-    }
-
-    override func draw(_ dirtyRect: NSRect) {
-        super.draw(dirtyRect)
+        self.delegate = self
+        self.textStorage?.delegate = self
     }
     
     func shouldHandleDrag(_ draggingInfo: NSDraggingInfo) -> Bool {
         let pboard = draggingInfo.draggingPasteboard()
-        
+
         if pboard.canReadObject(forClasses: [NSURL.self], options: nil) &&
             draggingInfo.draggingSource() as AnyObject? !== self {
             return true
@@ -46,7 +44,7 @@ class MTextView: NSTextView {
     override func draggingEntered(_ sender: NSDraggingInfo) -> NSDragOperation {
         return shouldHandleDrag(sender) ? [.link] : super.draggingEntered(sender)
     }
-    
+
     override func prepareForDragOperation(_ sender: NSDraggingInfo) -> Bool {
         if shouldHandleDrag(sender) {
             return true
@@ -55,38 +53,27 @@ class MTextView: NSTextView {
         }
     }
 
+    // 今の所絶対URLを使っている　ゆくゆくは相対パスにしたい（相対URLというのがある？）
     override func performDragOperation(_ sender: NSDraggingInfo) -> Bool {
         let pboard = sender.draggingPasteboard()
-        
+
         if !shouldHandleDrag(sender) {
             return super.performDragOperation(sender)
         }
-        
+
         let dropPoint = self.convert(sender.draggingLocation(), from: nil)
         let caretLocation = self.characterIndexForInsertion(at: dropPoint)
 
         if let urls = pboard.readObjects(forClasses: [NSURL.self], options: nil) as? [URL],
             let storage = self.textStorage {
-//
-//            storage.beginEditing()
-//
-//            for url in urls {
-//                let addedText = NSMutableAttributedString(string: url.relativePath, attributes: [.link: url])
-//                addedText.insert(NSAttributedString(string: " "), at: 0)
-//                addedText.insert(NSAttributedString(string: " "), at: addedText.length)
-//
-//                storage.insert(addedText, at: caretLocation)
-//            }
-//
-//            storage.endEditing()
-            let ws = NSWorkspace.shared
-            
+
             for url in urls {
                 if let path = url.path.removingPercentEncoding {
                     let cell = URLAttachmentCell()
-                    let textAttachment = NSTextAttachment(data: url.dataRepresentation, ofType: kUTTypeFileURL as String) // UTF8でエンコードされている
-                    textAttachment.attachmentCell = cell
+                    let textAttachment = NSTextAttachment(fileWrapper: self.fileWrapper(with: "url", data: url.dataRepresentation))
                     
+                    textAttachment.attachmentCell = cell
+
                     let cellstring = NSAttributedString(attachment: textAttachment)
                     storage.insert(cellstring, at: caretLocation)
                 }
@@ -98,36 +85,52 @@ class MTextView: NSTextView {
         }
         return false
     }
+    func fileWrapper(with identifier: String, data: Data) -> FileWrapper {
+        let wrapName = identifier.appendingPathExtension("meno")?.appendingPathExtension("url")
+        let wrapper = FileWrapper(regularFileWithContents: data)
+        
+        wrapper.filename = wrapName
+        wrapper.preferredFilename = wrapName
+        
+        return wrapper
+    }
+    
+    func textView(_ view: NSTextView, writablePasteboardTypesFor cell: NSTextAttachmentCellProtocol, at charIndex: Int) -> [NSPasteboard.PasteboardType] {
+        return [NSPasteboard.PasteboardType.fileURL]
+    }
+
+    
+    // 外にドラッグするときにちゃんとファイルURLをコピーしたい
+    func textView(_ view: NSTextView, write cell: NSTextAttachmentCellProtocol, at charIndex: Int, to pboard: NSPasteboard, type: NSPasteboard.PasteboardType) -> Bool {
+        if type == .fileURL && cell is URLAttachmentCell {
+            if let data = cell.attachment?.fileWrapper?.regularFileContents,
+               let url = URL(dataRepresentation: data, relativeTo: nil) {
+                pboard.writeObjects([url as NSURL])
+            }
+        }
+        return true
+    }
+    
     
     func textStorage(_ textStorage: NSTextStorage, willProcessEditing editedMask: NSTextStorageEditActions, range editedRange: NSRange, changeInLength delta: Int) {
-        if let storage = self.textStorage {
-            let range = storage.editedRange
-        
-            storage.enumerateAttributes(in: range, options: .longestEffectiveRangeNotRequired)
-            { (attributes, range, stop) in
-                for attribute in attributes {
-                    if attribute.key == NSAttributedStringKey.attachment {
-                        let attachment = attribute.value as! NSTextAttachment
-                        
-                        self.replaceAttachmentCell(attachment: attachment)
+            let text = self.textStorage!
+            let length = text.length
+            var effectiveRange = NSMakeRange(0, 0)
+            
+            while NSMaxRange(effectiveRange) < length {
+                if let attachment = text.attribute(.attachment, at: NSMaxRange(effectiveRange), effectiveRange: &effectiveRange) as? NSTextAttachment {
+                    if !(attachment.attachmentCell is URLAttachmentCell) {
+                        if let filename = attachment.fileWrapper?.preferredFilename {
+                            if filename.pathExtension == "url" &&
+                                filename.deletingPathExtension.pathExtension == "meno" {
+                                
+                                let cell = URLAttachmentCell()
+                                attachment.attachmentCell = cell
+                            }
+                        }
                     }
                 }
             }
-        }
-    }
-    
-    func replaceAttachmentCell(attachment: NSTextAttachment) {
-        if attachment.attachmentCell is URLAttachmentCell {
-            return
-        }
-        
-        let cell = attachment.attachmentCell as! NSTextAttachmentCell
-        let image = cell.image
-        let text = cell.stringValue
-        let newCell = URLAttachmentCell()
-        newCell.image = image
-        newCell.stringValue = text
-        
-        attachment.attachmentCell = newCell
     }
 }
+

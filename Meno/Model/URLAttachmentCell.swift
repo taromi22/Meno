@@ -29,6 +29,15 @@ class URLAttachmentCell: NSTextAttachmentCell {
                     
                     self.image = ws.icon(forFile: url.path)
                 }
+            } else if attachment?.fileWrapper != nil {
+                if let data = attachment!.fileWrapper!.regularFileContents,
+                   let url = URL(dataRepresentation: data, relativeTo: nil) {
+                    self.stringValue = url.lastPathComponent
+                    
+                    let ws = NSWorkspace.shared
+                    
+                    self.image = ws.icon(forFile: url.path)
+                }
             }
         }
     }
