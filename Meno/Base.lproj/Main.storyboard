@@ -670,9 +670,6 @@
                             </menuItem>
                         </items>
                     </menu>
-                    <connections>
-                        <outlet property="delegate" destination="Voe-Tx-rLC" id="PrD-fu-P6m"/>
-                    </connections>
                 </application>
                 <customObject id="Voe-Tx-rLC" customClass="AppDelegate" customModule="Meno" customModuleProvider="target"/>
                 <customObject id="YLy-65-1bz" customClass="NSFontManager"/>
@@ -767,9 +764,6 @@
                                 <toolbarItem reference="nHc-ue-1Dp"/>
                             </defaultToolbarItems>
                         </toolbar>
-                        <connections>
-                            <outlet property="delegate" destination="B8D-0N-5wS" id="98r-iN-zZc"/>
-                        </connections>
                     </window>
                     <connections>
                         <segue destination="bQh-Dg-PJo" kind="relationship" relationship="window.shadowedContentViewController" id="BoY-Xh-gL4"/>
@@ -790,9 +784,6 @@
                     <splitView key="splitView" dividerStyle="thin" vertical="YES" id="JSh-de-ZcC">
                         <rect key="frame" x="0.0" y="0.0" width="450" height="300"/>
                         <autoresizingMask key="autoresizingMask"/>
-                        <connections>
-                            <outlet property="delegate" destination="bQh-Dg-PJo" id="bL7-oV-bwE"/>
-                        </connections>
                     </splitView>
                     <connections>
                         <outlet property="splitView" destination="JSh-de-ZcC" id="bJY-Gz-BP7"/>
@@ -808,14 +799,14 @@
         <scene sceneID="wNi-Oc-Prt">
             <objects>
                 <viewController id="aBV-2k-vfa" customClass="ItemsViewController" customModule="Meno" customModuleProvider="target" sceneMemberID="viewController">
-                    <scrollView key="view" borderType="none" autohidesScrollers="YES" horizontalLineScroll="19" horizontalPageScroll="10" verticalLineScroll="19" verticalPageScroll="10" usesPredominantAxisScrolling="NO" id="gGt-Ya-DpO">
+                    <scrollView key="view" borderType="none" autohidesScrollers="YES" horizontalLineScroll="52" horizontalPageScroll="10" verticalLineScroll="52" verticalPageScroll="10" usesPredominantAxisScrolling="NO" id="gGt-Ya-DpO">
                         <rect key="frame" x="0.0" y="0.0" width="450" height="300"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                         <clipView key="contentView" id="tzr-zm-flJ">
                             <rect key="frame" x="0.0" y="0.0" width="450" height="300"/>
                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                             <subviews>
-                                <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" columnSelection="YES" multipleSelection="NO" autosaveColumns="NO" id="4Vt-mJ-Orh">
+                                <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" columnSelection="YES" multipleSelection="NO" autosaveColumns="NO" rowHeight="50" viewBased="YES" id="4Vt-mJ-Orh">
                                     <rect key="frame" x="0.0" y="0.0" width="450" height="300"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                     <size key="intercellSpacing" width="3" height="2"/>
@@ -834,10 +825,34 @@
                                                 <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
                                             </textFieldCell>
                                             <tableColumnResizingMask key="resizingMask" resizeWithTable="YES" userResizable="YES"/>
+                                            <prototypeCellViews>
+                                                <tableCellView id="v2v-Kc-OoV">
+                                                    <rect key="frame" x="1" y="1" width="447" height="50"/>
+                                                    <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                                    <subviews>
+                                                        <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="0rK-mG-XY6">
+                                                            <rect key="frame" x="13" y="27" width="434" height="17"/>
+                                                            <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
+                                                            <textFieldCell key="cell" lineBreakMode="truncatingTail" sendsActionOnEndEditing="YES" title="Table View Cell" id="kBj-2D-q9S">
+                                                                <font key="font" metaFont="system"/>
+                                                                <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                                                                <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                                            </textFieldCell>
+                                                            <connections>
+                                                                <binding destination="v2v-Kc-OoV" name="value" keyPath="objectValue.titleForPresentation" id="jfh-SP-BYy"/>
+                                                            </connections>
+                                                        </textField>
+                                                    </subviews>
+                                                    <connections>
+                                                        <outlet property="textField" destination="0rK-mG-XY6" id="rQz-bB-md5"/>
+                                                    </connections>
+                                                </tableCellView>
+                                            </prototypeCellViews>
                                         </tableColumn>
                                     </tableColumns>
                                     <connections>
-                                        <outlet property="dataSource" destination="aBV-2k-vfa" id="XHV-8Z-xeg"/>
+                                        <binding destination="BnK-Pe-oFw" name="content" keyPath="arrangedObjects" id="KaQ-zw-cOQ"/>
+                                        <binding destination="BnK-Pe-oFw" name="selectionIndexes" keyPath="selectionIndexes" previousBinding="KaQ-zw-cOQ" id="WgA-51-f7R"/>
                                     </connections>
                                 </tableView>
                             </subviews>
@@ -852,10 +867,20 @@
                         </scroller>
                     </scrollView>
                     <connections>
+                        <outlet property="arrayController" destination="BnK-Pe-oFw" id="eA4-8i-M6X"/>
                         <outlet property="tableView" destination="4Vt-mJ-Orh" id="WXe-S1-Rnb"/>
                     </connections>
                 </viewController>
                 <customObject id="Q2w-bg-nkC" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
+                <arrayController objectClassName="Meno.NoteProfile" id="BnK-Pe-oFw">
+                    <declaredKeys>
+                        <string>title</string>
+                        <string>titleForPresentation</string>
+                    </declaredKeys>
+                    <connections>
+                        <binding destination="aBV-2k-vfa" name="contentArray" keyPath="self.items" id="3jl-fZ-ukz"/>
+                    </connections>
+                </arrayController>
             </objects>
             <point key="canvasLocation" x="755" y="416"/>
         </scene>

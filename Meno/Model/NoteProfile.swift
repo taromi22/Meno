@@ -9,10 +9,20 @@
 import Cocoa
 
 class NoteProfile: NSObject {
-    var id: Int
-    var title: String
-    var text: String
-    var updatedDate: NSDate
+    @objc var id: Int
+    @objc var title: String
+    @objc var text: String
+    @objc var updatedDate: NSDate
+    
+    @objc var titleForPresentation: String {
+        get {
+            if self.title == "" {
+                return "タイトルなし"
+            } else {
+                return self.title
+            }
+        }
+    }
     
     init(id: Int, title: String, text: String, date: NSDate) {
         self.id = id

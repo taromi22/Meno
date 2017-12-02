@@ -10,16 +10,16 @@ import Cocoa
 
 class ItemsViewController: NSViewController, NSTableViewDataSource, NSTableViewDelegate {
     @IBOutlet weak var tableView: NSTableView!
+    @IBOutlet var arrayController: NSArrayController!
     
     weak var delegate: ItemsViewControllerDelegate?
     
     var preSelectedId = -1
-    var items = [NoteProfile]()
+    @objc var items = [NoteProfile]()
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        tableView.dataSource = self
         tableView.delegate = self
     }
     
@@ -29,19 +29,6 @@ class ItemsViewController: NSViewController, NSTableViewDataSource, NSTableViewD
         }
     }
     
-    func numberOfRows(in tableView: NSTableView) -> Int {
-        return items.count
-    }
-
-    func tableView(_ tableView: NSTableView, objectValueFor tableColumn: NSTableColumn?, row: Int) -> Any? {
-        if row < items.count {
-            let note = items[row]
-            if tableColumn!.identifier.rawValue == "Title" {
-                return note.title != "" ? note.title : "タイトルなし"
-            }
-        }
-        return ""
-    }
     
     func tableView(_ tableView: NSTableView, shouldEdit tableColumn: NSTableColumn?, row: Int) -> Bool {
         return false
@@ -64,58 +51,38 @@ class ItemsViewController: NSViewController, NSTableViewDataSource, NSTableViewD
     }
     
     func selectedId() -> Int? {
-        let row = self.tableView.selectedRow
-        if row >= 0 && row < self.items.count {
-            return self.items[row].id
+        if self.arrayController.selectionIndexes.count == 1 {
+            return (self.arrayController.selectedObjects[0] as! NoteProfile).id
+        } else {
+            return nil
         }
-        
-        return nil
-    }
-    
-    func update() {
-        self.tableView.reloadData()
     }
     
     func addItem(_ item: NoteProfile) {
-        self.items.insert(item, at: 0)
+        NSAnimationContext.runAnimationGroup({ (context) in
+            self.tableView.insertRows(at: IndexSet(integer: 0), withAnimation: .slideDown)
+        }) {
+            self.arrayController.insert(item, atArrangedObjectIndex: 0)
+        }
         
-        self.update()
-        
-        self.tableView.selectRowIndexes(IndexSet(integer: 0), byExtendingSelection: false)
-        
-        let newid = self.items[0].id
+        let newid = item.id
         delegate?.itemsViewControllerSelectionChanged(id: newid)
     }
     
     func removeSelectedItem() {
-        let row = self.tableView.selectedRow
-        if row >= 0 && row < self.items.count {
-            self.items.remove(at: row)
-            
-            self.update()
-            
-            var newid: Int?
-            
-            if row < self.items.count {
-                self.tableView.selectRowIndexes(IndexSet(integer: row), byExtendingSelection: false)
-                newid = self.items[row].id
-            } else {
-                self.tableView.selectRowIndexes(IndexSet(integer: self.items.count-1), byExtendingSelection: false)
-                newid = self.items[self.items.count-1].id
-            }
-            
-            delegate?.itemsViewControllerSelectionChanged(id: newid!)
+        let selection = self.arrayController.selectionIndexes
+        NSAnimationContext.runAnimationGroup({
+            (context) in
+            self.tableView.removeRows(at: selection, withAnimation: .effectFade)
+        }) {
+            self.arrayController.remove(atArrangedObjectIndexes: selection)
         }
     }
     
     func setItems(_ items: [NoteProfile]) {
-        self.items = items
+        self.arrayController.add(contentsOf: items)
         
-        self.update()
-        
-        if self.items.count > 0 {
-            self.tableView.selectRowIndexes(IndexSet(integer: 0), byExtendingSelection: false)
-        }
+        self.arrayController.setSelectionIndex(0)
     }
 }
 

@@ -7,8 +7,11 @@
 //
 
 import Cocoa
+import Quartz
 
 class MTextView: NSTextView, NSTextViewDelegate, NSTextStorageDelegate {
+    
+    var selectingURL: URL?
     
     override init(frame frameRect: NSRect) {
         super.init(frame: frameRect)
@@ -132,5 +135,39 @@ class MTextView: NSTextView, NSTextViewDelegate, NSTextStorageDelegate {
                 }
             }
     }
+    
+//    func textView(_ textView: NSTextView, clickedOn cell: NSTextAttachmentCellProtocol, in cellFrame: NSRect, at charIndex: Int) {
+//        if let urlcell = cell as? URLAttachmentCell,
+//           let data = urlcell.attachment?.fileWrapper?.regularFileContents {
+//            let url = URL(dataRepresentation: data, relativeTo: nil)
+//            self.selectingURL = url
+//
+//            if let panel = QLPreviewPanel.shared() {
+//                panel.dataSource = self
+//                panel.makeKeyAndOrderFront(self)
+//            }
+//        }
+//    }
+    func textView(_ textView: NSTextView, doubleClickedOn cell: NSTextAttachmentCellProtocol, in cellFrame: NSRect, at charIndex: Int) {
+        if let urlcell = cell as? URLAttachmentCell,
+            let data = urlcell.attachment?.fileWrapper?.regularFileContents {
+            let url = URL(dataRepresentation: data, relativeTo: nil)
+            let ws = NSWorkspace.shared
+            
+            if let path = url?.path {
+                ws.openFile(path)
+            }
+        }
+    }
 }
 
+extension MTextView: QLPreviewPanelDataSource {
+    func numberOfPreviewItems(in panel: QLPreviewPanel!) -> Int {
+        return 1
+    }
+    
+    func previewPanel(_ panel: QLPreviewPanel!, previewItemAt index: Int) -> QLPreviewItem! {
+        return selectingURL! as NSURL
+    }
+    
+}
