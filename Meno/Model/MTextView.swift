@@ -13,6 +13,17 @@ class MTextView: NSTextView, NSTextViewDelegate, NSTextStorageDelegate {
     
     var selectingURL: URL?
     
+    override var intrinsicContentSize: NSSize {
+        get {
+            if let container = self.textContainer, let layoutManager = self.layoutManager {
+                layoutManager.ensureLayout(for: container)
+                return layoutManager.usedRect(for: container).size
+            } else {
+                return super.intrinsicContentSize
+            }
+        }
+    }
+    
     override init(frame frameRect: NSRect) {
         super.init(frame: frameRect)
         commonInit()
@@ -158,6 +169,11 @@ class MTextView: NSTextView, NSTextViewDelegate, NSTextStorageDelegate {
                 ws.openFile(path)
             }
         }
+    }
+    
+    override func didChangeText() {
+        super.didChangeText()
+        self.invalidateIntrinsicContentSize()
     }
 }
 

@@ -10,8 +10,19 @@ import Cocoa
 
 class EditViewController: NSViewController {
     
-    @IBOutlet var textView: MTextView!
+    var scrollView: NSScrollView!
+    var contentView: EditView!
     
+    var textView: MTextView! {
+        get {
+            return contentView.textView
+        }
+    }
+    var titleField: NSTextField! {
+        get {
+            return contentView.titleField
+        }
+    }
     var dbManager: DBManager?
     var showingId: Int?
     var text: String {
@@ -23,8 +34,21 @@ class EditViewController: NSViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+    
+        scrollView = NSScrollView(frame: self.view.frame)
+        scrollView.borderType = .noBorder
+        scrollView.hasVerticalScroller = true
+        scrollView.hasHorizontalScroller = false
+        scrollView.autoresizingMask = [.width, .height]
         
-        textView.textContainerInset = NSSize(width: 20.0, height: 36.0)
+        self.contentView = EditView(frame: NSMakeRect(0, 0, scrollView.contentSize.width, scrollView.contentSize.height))
+        self.contentView.minSize = scrollView.contentSize
+        print(self.contentView.minSize)
+        self.contentView.autoresizingMask = [.width]
+        
+        scrollView.documentView = contentView
+        
+        self.view.addSubview(scrollView)
     }
     
     func saveAndReload(id: Int) {
@@ -36,5 +60,7 @@ class EditViewController: NSViewController {
         let atrstring = dbManager!.getNote(id: id)
         self.textStorage!.setAttributedString(atrstring ?? NSAttributedString())
         self.showingId = id
+        // カーソルをトップへ　（一番上へスクロールさせるためのフラグとして用いている)
+        self.textView.setSelectedRange(NSMakeRange(0, 0))
     }
 }

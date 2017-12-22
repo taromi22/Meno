@@ -18,9 +18,9 @@
 		5A485EFE1FBB286800175169 /* SplitViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A485EFD1FBB286800175169 /* SplitViewController.swift */; };
 		5A485F001FBB28D400175169 /* ItemsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A485EFF1FBB28D400175169 /* ItemsViewController.swift */; };
 		5A485F031FBBC8C100175169 /* EditViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A485F011FBBC8C100175169 /* EditViewController.swift */; };
-		5A485F061FBDD6EF00175169 /* test in Resources */ = {isa = PBXBuildFile; fileRef = 5A485F051FBDD6EE00175169 /* test */; };
 		5A485F081FBE735B00175169 /* DBManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A485F071FBE735B00175169 /* DBManager.swift */; };
 		5A485F0A1FBEF05C00175169 /* NoteProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A485F091FBEF05C00175169 /* NoteProfile.swift */; };
+		5AD6F6D11FDC45BF00E6427D /* EditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5AD6F6D01FDC45BF00E6427D /* EditView.swift */; };
 		AE7AF2BDD8D9B1D81E3242B7 /* Pods_Meno.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2477455312ED6AB0263ED9DE /* Pods_Meno.framework */; };
 /* End PBXBuildFile section */
 
@@ -40,9 +40,9 @@
 		5A485EFD1FBB286800175169 /* SplitViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplitViewController.swift; sourceTree = "<group>"; };
 		5A485EFF1FBB28D400175169 /* ItemsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemsViewController.swift; sourceTree = "<group>"; };
 		5A485F011FBBC8C100175169 /* EditViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditViewController.swift; sourceTree = "<group>"; };
-		5A485F051FBDD6EE00175169 /* test */ = {isa = PBXFileReference; lastKnownFileType = file; path = test; sourceTree = "<group>"; };
 		5A485F071FBE735B00175169 /* DBManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DBManager.swift; sourceTree = "<group>"; };
 		5A485F091FBEF05C00175169 /* NoteProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoteProfile.swift; sourceTree = "<group>"; };
+		5AD6F6D01FDC45BF00E6427D /* EditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditView.swift; sourceTree = "<group>"; };
 		CA994BC6EE4ED591F96D8487 /* Pods-Meno.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Meno.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Meno/Pods-Meno.debug.xcconfig"; sourceTree = "<group>"; };
 		DC2EA303C9008D10B26E5E0D /* Pods-Meno.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Meno.release.xcconfig"; path = "Pods/Target Support Files/Pods-Meno/Pods-Meno.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -72,7 +72,6 @@
 			isa = PBXGroup;
 			children = (
 				5A485EF91FBB226600175169 /* AppDef.swift */,
-				5A485F051FBDD6EE00175169 /* test */,
 				5A485EF81FBB222C00175169 /* Util */,
 				5A485EF71FBB222200175169 /* Repo */,
 				5A485EE41FBB1D5900175169 /* Meno */,
@@ -123,6 +122,7 @@
 				5A1F34881FC3019700E2DBDC /* MTextView.swift */,
 				5A13C8041FC90DA900F333A7 /* XMLParser.swift */,
 				5A13C8061FC942F700F333A7 /* URLAttachmentCell.swift */,
+				5AD6F6D01FDC45BF00E6427D /* EditView.swift */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -216,7 +216,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				5A485F061FBDD6EF00175169 /* test in Resources */,
 				5A485EEA1FBB1D5900175169 /* Assets.xcassets in Resources */,
 				5A485EED1FBB1D5900175169 /* Main.storyboard in Resources */,
 			);
@@ -285,6 +284,7 @@
 			files = (
 				5A485F001FBB28D400175169 /* ItemsViewController.swift in Sources */,
 				5A485EE61FBB1D5900175169 /* AppDelegate.swift in Sources */,
+				5AD6F6D11FDC45BF00E6427D /* EditView.swift in Sources */,
 				5A1F34891FC3019700E2DBDC /* MTextView.swift in Sources */,
 				5A485F031FBBC8C100175169 /* EditViewController.swift in Sources */,
 				5A13C8071FC942F700F333A7 /* URLAttachmentCell.swift in Sources */,

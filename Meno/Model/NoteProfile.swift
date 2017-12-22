@@ -6,6 +6,7 @@
 //  Copyright © 2017年 Taro Yanagiya. All rights reserved.
 //
 
+
 import Cocoa
 
 class NoteProfile: NSObject {
