@@ -11,7 +11,7 @@ import Cocoa
 class EditView: NSView {
     let dateHeight: CGFloat = 20.0
     let titleHeight: CGFloat = 30.0
-    let titleMargin: NSSize = NSMakeSize(16.0, 8.0)
+    let titleMargin: NSSize = NSMakeSize(8.0, 8.0)
     
     var headerHeight: CGFloat {
         get {
@@ -19,6 +19,7 @@ class EditView: NSView {
         }
     }
     
+    var delegate: EditViewDelegate?
     var dateField: NSTextField!
     var titleField: NSTextField!
     var textView: MTextView!
@@ -49,6 +50,7 @@ class EditView: NSView {
     override init(frame frameRect: NSRect) {
         super.init(frame: frameRect)
         
+        // 日時ラベル
         dateField = NSTextField(frame: NSMakeRect(frameRect.origin.x, frameRect.height - self.dateHeight, frameRect.width, dateHeight))
         dateField.autoresizingMask = [.width, .minYMargin]
         dateField.textColor = NSColor.gray
@@ -58,12 +60,20 @@ class EditView: NSView {
         dateField.stringValue = "2017年12月22日 (金)"
         self.addSubview(dateField)
         
+        // タイトルフィールド
         titleField = NSTextField(frame: NSMakeRect(frameRect.origin.x + titleMargin.width, frameRect.height - (dateHeight + titleHeight + titleMargin.height), frameRect.width - titleMargin.width*2, self.titleHeight))
+        titleField.cell = TitleFieldCell()
+        titleField.backgroundColor = .white
+        titleField.isEnabled = true
+        titleField.isEditable = true
+        titleField.isSelectable = true
         titleField.autoresizingMask = [.width, .minYMargin]
         let font = NSFontManager.shared.font(withFamily: "Hiragino Kaku Gothic Pro", traits: .boldFontMask, weight: 0, size: 20)
         titleField.font = font
+        titleField.delegate = self
         self.addSubview(titleField)
         
+        // コンテンツビュー
         textView = MTextView(frame: NSMakeRect(0, 0, frameRect.width, frameRect.height - self.headerHeight))
         textView.minSize = NSMakeSize(0.0, frameRect.height - self.headerHeight)
         textView.maxSize = NSMakeSize(CGFloat.greatestFiniteMagnitude, CGFloat.greatestFiniteMagnitude)
@@ -72,7 +82,7 @@ class EditView: NSView {
         textView.autoresizingMask = [.width, .minYMargin]
         textView.textContainer?.containerSize = NSMakeSize(frameRect.width, CGFloat.greatestFiniteMagnitude)
         textView.textContainer?.widthTracksTextView = true
-        textView.textContainerInset = NSSize(width: 20.0, height: 36.0)
+        textView.textContainerInset = NSSize(width: 20.0, height: 10.0)
         
         self.addSubview(textView)
         
@@ -97,7 +107,7 @@ class EditView: NSView {
         super.init(coder: decoder)
     }
 
-    /// リサイズしたときに引き伸ばすor縮める
+    /// リサイズしたときにminSizeを引き伸ばすor縮める
     override func resize(withOldSuperviewSize oldSize: NSSize) {
         super.resize(withOldSuperviewSize: oldSize)
         
@@ -106,7 +116,17 @@ class EditView: NSView {
         
         self.minSize = NSMakeSize(self.minSize.width + dWidth, self.minSize.height + dHeight)
         
-        // あとでminSize変えてるから
+        // あとでminSize変えてるから必要？
         self.frame.size = NSMakeSize(self.minSize.width, self.frame.height)
     }
+}
+
+extension EditView: NSTextFieldDelegate {
+    override func controlTextDidChange(_ obj: Notification) {
+        delegate?.editViewTitleChanged(string: self.titleField.stringValue)
+    }
+}
+
+protocol EditViewDelegate: class {
+    func editViewTitleChanged(string: String)
 }

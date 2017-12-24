@@ -14,7 +14,7 @@ class ItemsViewController: NSViewController, NSTableViewDataSource, NSTableViewD
     
     weak var delegate: ItemsViewControllerDelegate?
     
-    var preSelectedId = -1
+    var preSelectedProfile: NoteProfile? = nil
     @objc var items = [NoteProfile]()
     
     override func viewDidLoad() {
@@ -29,7 +29,6 @@ class ItemsViewController: NSViewController, NSTableViewDataSource, NSTableViewD
         }
     }
     
-    
     func tableView(_ tableView: NSTableView, shouldEdit tableColumn: NSTableColumn?, row: Int) -> Bool {
         return false
     }
@@ -39,44 +38,69 @@ class ItemsViewController: NSViewController, NSTableViewDataSource, NSTableViewD
     }
     
     func tableView(_ tableView: NSTableView, selectionIndexesForProposedSelection proposedSelectionIndexes: IndexSet) -> IndexSet {
-        let id = selectedId()
-        delegate?.itemsViewControllerSelectionChanging(id: id)
+        let newProfile = selectedProfile
+        delegate?.itemsViewControllerSelectionChanging(newProfile: newProfile, oldProfile: &self.preSelectedProfile)
         
         return proposedSelectionIndexes
     }
     
     func tableViewSelectionDidChange(_ notification: Notification) {
-        let id = selectedId()
-        delegate?.itemsViewControllerSelectionChanged(id: id)
+        let newProfile = selectedProfile
+        delegate?.itemsViewControllerSelectionChanged(newProfile: newProfile, oldProfile: &self.preSelectedProfile)
+        self.preSelectedProfile = newProfile
     }
     
-    func selectedId() -> Int? {
-        if self.arrayController.selectionIndexes.count == 1 {
-            return (self.arrayController.selectedObjects[0] as! NoteProfile).id
-        } else {
-            return nil
+    var selectedProfile: NoteProfile? {
+        get {
+            if self.arrayController.selectionIndexes.count == 1 {
+                return self.arrayController.selectedObjects[0] as? NoteProfile
+            } else {
+                return nil
+            }
+        }
+    }
+    
+    var selectedProfiles: [NoteProfile]? {
+        get {
+            if self.arrayController.selectionIndexes.count > 0 {
+                return self.arrayController.selectedObjects as? [NoteProfile]
+            } else {
+                return nil
+            }
         }
     }
     
     func addItem(_ item: NoteProfile) {
+        self.preSelectedProfile = selectedProfile
+        
         NSAnimationContext.runAnimationGroup({ (context) in
             self.tableView.insertRows(at: IndexSet(integer: 0), withAnimation: .slideDown)
         }) {
             self.arrayController.insert(item, atArrangedObjectIndex: 0)
         }
         
-        let newid = item.id
-        delegate?.itemsViewControllerSelectionChanged(id: newid)
+        delegate?.itemsViewControllerSelectionChanged(newProfile: item, oldProfile: &self.preSelectedProfile)
+        
+        self.preSelectedProfile = selectedProfile
     }
     
     func removeSelectedItem() {
-        let selection = self.arrayController.selectionIndexes
+        // selectionIndexesとselectedProfilesを両方使うことにする．両者が常に一致しているという前提
+        let selectedIndexes = self.arrayController.selectionIndexes
+        let profiles = self.selectedProfiles
+        
+        // preSelectedProfileを破棄する．無駄な更新をしないように．
+        if self.preSelectedProfile != nil && profiles?.contains(preSelectedProfile!) ?? false {
+            self.preSelectedProfile = nil
+        }
+        
         NSAnimationContext.runAnimationGroup({
             (context) in
-            self.tableView.removeRows(at: selection, withAnimation: .effectFade)
+            self.tableView.removeRows(at: selectedIndexes, withAnimation: .effectFade)
         }) {
-            self.arrayController.remove(atArrangedObjectIndexes: selection)
+            self.arrayController.remove(atArrangedObjectIndexes: selectedIndexes)
         }
+        
     }
     
     func setItems(_ items: [NoteProfile]) {
@@ -87,10 +111,10 @@ class ItemsViewController: NSViewController, NSTableViewDataSource, NSTableViewD
 }
 
 protocol ItemsViewControllerDelegate: class {
-    func itemsViewControllerSelectionChanged(id: Int?)
-    func itemsViewControllerSelectionChanging(id: Int?)
+    func itemsViewControllerSelectionChanged(newProfile: NoteProfile?, oldProfile: inout NoteProfile?)
+    func itemsViewControllerSelectionChanging(newProfile: NoteProfile?, oldProfile: inout NoteProfile?)
 }
 extension ItemsViewControllerDelegate {
-    func itemsViewControllerSelectionChanged(id: Int?) { }
-    func itemsViewControllerSelectionChanging(id: Int?) { }
+    func itemsViewControllerSelectionChanged(newProfile: NoteProfile?, oldProfile: inout NoteProfile?) { }
+    func itemsViewControllerSelectionChanging(newProfile: NoteProfile?, oldProfile: inout NoteProfile?) { }
 }

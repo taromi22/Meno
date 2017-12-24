@@ -26,20 +26,38 @@ class DBManager: NSObject {
         completed(result)
     }
     
-    func getProfiles() -> [NoteProfile] {
+    func getProfile() -> [NoteProfile] {
         let results = db?.executeQuery("SELECT ID, TITLE FROM ITEMS", withParameterDictionary: nil)
         var profiles: [NoteProfile] = []
         
         if let results = results {
             while results.next() {
-                let title = results.string(forColumn: "title") ?? ""
-                let id = Int(results.int(forColumn: "id"))
+                let title = results.string(forColumn: "TITLE") ?? ""
+                let id = Int(results.int(forColumn: "ID"))
                 
                 profiles.append(NoteProfile(id: id, title: title, text: "", date: NSDate()))
             }
         }
         
         return profiles
+    }
+    
+    func getProfile(id: Int) -> NoteProfile? {
+        let results = db?.executeQuery("SELECT ID, TITLE FROM ITEMS", withParameterDictionary: nil)
+        
+        if let results = results {
+            results.next()
+            let title = results.string(forColumn: "TITLE") ?? ""
+            let id = Int(results.int(forColumn: "ID"))
+                
+            return NoteProfile(id: id, title: title, text: "", date: NSDate())
+        }
+        
+        return nil
+    }
+    
+    func saveProfile(profile: NoteProfile) {
+        db!.executeUpdate("UPDATE ITEMS SET TITLE=? WHERE ID=?", withArgumentsIn: [profile.title, profile.id])
     }
     
     func getNote(id: Int) -> NSAttributedString? {
@@ -65,8 +83,6 @@ class DBManager: NSObject {
     }
     
     func addNew() -> Int? {
-        
-        
         if db!.executeUpdate("INSERT INTO ITEMS(TEXT) VALUES(?)", withArgumentsIn: [NSAttributedString()]) {
             let results = db!.executeQuery("SELECT ID FROM ITEMS WHERE ROWID = last_insert_rowid()", withParameterDictionary: nil)
             if let results = results {

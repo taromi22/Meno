@@ -11,10 +11,17 @@ import Cocoa
 
 class NoteProfile: NSObject {
     @objc var id: Int
-    @objc var title: String
+    @objc var title: String {
+        //  titleForPresentationの変更通知を手動で呼ぶ
+        willSet {
+            self.willChangeValue(forKey: "titleForPresentation")
+        }
+        didSet {
+            self.didChangeValue(forKey: "titleForPresentation")
+        }
+    }
     @objc var text: String
     @objc var updatedDate: NSDate
-    
     @objc var titleForPresentation: String {
         get {
             if self.title == "" {

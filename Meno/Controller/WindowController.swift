@@ -36,7 +36,7 @@ class WindowController: NSWindowController, ItemsViewControllerDelegate {
         dbManager = DBManager()
         editViewController.dbManager = dbManager
         
-        titlesViewController!.delegate = self
+        titlesViewController.delegate = self
     }
     
     override func showWindow(_ sender: Any?) {
@@ -55,15 +55,19 @@ class WindowController: NSWindowController, ItemsViewControllerDelegate {
                 let url = openPanel.url!
                 
                 self.dbManager?.open(url: url) { (result) in
-                    self.titlesViewController.setItems((self.dbManager?.getProfiles())!)
+                    self.titlesViewController.setItems((self.dbManager?.getProfile())!)
                 }
             }
         }
     }
     
-    func itemsViewControllerSelectionChanged(id: Int?) {
-        if let id = id {
-            editViewController.saveAndReload(id: id)
+    func itemsViewControllerSelectionChanged(newProfile: NoteProfile?, oldProfile: inout NoteProfile?) {
+        
+        if let profile = newProfile {
+            editViewController.saveAndLoad(newProfile: profile)
+        }
+        if let old = oldProfile {
+            oldProfile = dbManager?.getProfile(id: old.id)
         }
     }
 
@@ -74,8 +78,8 @@ class WindowController: NSWindowController, ItemsViewControllerDelegate {
         }
     }
     @IBAction func removeAction(_ sender: Any) {
-        if let id = titlesViewController.selectedId() {
-            if dbManager!.removeItem(id: id) {
+        if let profile = titlesViewController.selectedProfile {
+            if dbManager!.removeItem(id: profile.id) {
                 self.titlesViewController.removeSelectedItem()
             }
         }

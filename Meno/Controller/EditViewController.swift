@@ -24,7 +24,7 @@ class EditViewController: NSViewController {
         }
     }
     var dbManager: DBManager?
-    var showingId: Int?
+    var showingProfile: NoteProfile?
     var text: String {
         return self.textView.string
     }
@@ -43,24 +43,35 @@ class EditViewController: NSViewController {
         
         self.contentView = EditView(frame: NSMakeRect(0, 0, scrollView.contentSize.width, scrollView.contentSize.height))
         self.contentView.minSize = scrollView.contentSize
-        print(self.contentView.minSize)
         self.contentView.autoresizingMask = [.width]
+        self.contentView.delegate = self
         
         scrollView.documentView = contentView
         
         self.view.addSubview(scrollView)
     }
     
-    func saveAndReload(id: Int) {
+    func saveAndLoad(newProfile: NoteProfile) {
         // 保存処理
-        if  let preId = self.showingId {
-            dbManager!.saveNote(id: preId, content: self.textStorage!)
+        if  let oldProfile = self.showingProfile {
+            dbManager!.saveProfile(profile: oldProfile)
+            dbManager!.saveNote(id: oldProfile.id, content: self.textStorage!)
         }
         // 表示
-        let atrstring = dbManager!.getNote(id: id)
+        let atrstring = dbManager!.getNote(id: newProfile.id)
         self.textStorage!.setAttributedString(atrstring ?? NSAttributedString())
-        self.showingId = id
+        self.titleField.stringValue = newProfile.title
+        self.showingProfile = newProfile
         // カーソルをトップへ　（一番上へスクロールさせるためのフラグとして用いている)
         self.textView.setSelectedRange(NSMakeRange(0, 0))
+    }
+}
+
+extension EditViewController: EditViewDelegate {
+    func editViewTitleChanged(string: String) {
+        if let profile = self.showingProfile {
+            self.showingProfile?.title = self.titleField.stringValue
+            dbManager!.saveProfile(profile: profile)
+        }
     }
 }
