@@ -10,7 +10,7 @@ import Cocoa
 
 class EditView: NSView {
     let dateHeight: CGFloat = 20.0
-    let titleHeight: CGFloat = 30.0
+    let titleHeight: CGFloat = 38.0
     let titleMargin: NSSize = NSMakeSize(8.0, 8.0)
     
     var headerHeight: CGFloat {
@@ -68,8 +68,7 @@ class EditView: NSView {
         titleField.isEditable = true
         titleField.isSelectable = true
         titleField.autoresizingMask = [.width, .minYMargin]
-        let font = NSFontManager.shared.font(withFamily: "Hiragino Kaku Gothic Pro", traits: .boldFontMask, weight: 0, size: 20)
-        titleField.font = font
+        titleField.font = NSFont.systemFont(ofSize: 24, weight: .bold)
         titleField.delegate = self
         self.addSubview(titleField)
         
