@@ -77,9 +77,9 @@ class ItemsViewController: NSViewController, NSTableViewDataSource, NSTableViewD
             self.tableView.insertRows(at: IndexSet(integer: 0), withAnimation: .slideDown)
         }) {
             self.arrayController.insert(item, atArrangedObjectIndex: 0)
+            
+            self.delegate?.itemsViewControllerSelectionChanged(newProfile: item, oldProfile: &self.preSelectedProfile)
         }
-        
-        delegate?.itemsViewControllerSelectionChanged(newProfile: item, oldProfile: &self.preSelectedProfile)
         
         self.preSelectedProfile = selectedProfile
     }
