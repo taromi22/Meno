@@ -103,10 +103,12 @@ class ItemsViewController: NSViewController, NSTableViewDataSource, NSTableViewD
         
     }
     
-    func setItems(_ items: [NoteProfile]) {
+    func setItems(_ items: [NoteProfile], didSet: ()->()) {
         self.arrayController.add(contentsOf: items)
         
         self.arrayController.setSelectionIndex(0)
+        
+        didSet()
     }
 }
 

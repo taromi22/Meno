@@ -12,17 +12,8 @@ import Quartz
 class MTextView: NSTextView, NSTextViewDelegate, NSTextStorageDelegate {
     
     var selectingURL: URL?
-    
-    override var intrinsicContentSize: NSSize {
-        get {
-            if let container = self.textContainer, let layoutManager = self.layoutManager {
-                layoutManager.ensureLayout(for: container)
-                return layoutManager.usedRect(for: container).size
-            } else {
-                return super.intrinsicContentSize
-            }
-        }
-    }
+    // 現在メニューを表示している可能性のあるCell (メニューを表示するときに対象のCellをこの変数に入れる)
+    var possibleActiveCell: URLAttachmentCell?
     
     override init(frame frameRect: NSRect) {
         super.init(frame: frameRect)
@@ -45,6 +36,7 @@ class MTextView: NSTextView, NSTextViewDelegate, NSTextStorageDelegate {
         self.textStorage?.delegate = self
     }
     
+    // このクラスでドラッグを処理すべきかどうか．そうでないときは上に投げる
     func shouldHandleDrag(_ draggingInfo: NSDraggingInfo) -> Bool {
         let pboard = draggingInfo.draggingPasteboard()
 
@@ -130,7 +122,7 @@ class MTextView: NSTextView, NSTextViewDelegate, NSTextStorageDelegate {
             let text = self.textStorage!
             let length = text.length
             var effectiveRange = NSMakeRange(0, 0)
-            
+        
             while NSMaxRange(effectiveRange) < length {
                 if let attachment = text.attribute(.attachment, at: NSMaxRange(effectiveRange), effectiveRange: &effectiveRange) as? NSTextAttachment {
                     if !(attachment.attachmentCell is URLAttachmentCell) {
@@ -162,6 +154,7 @@ class MTextView: NSTextView, NSTextViewDelegate, NSTextStorageDelegate {
     func textView(_ textView: NSTextView, doubleClickedOn cell: NSTextAttachmentCellProtocol, in cellFrame: NSRect, at charIndex: Int) {
         if let urlcell = cell as? URLAttachmentCell,
             let data = urlcell.attachment?.fileWrapper?.regularFileContents {
+            
             let url = URL(dataRepresentation: data, relativeTo: nil)
             let ws = NSWorkspace.shared
             
@@ -171,9 +164,27 @@ class MTextView: NSTextView, NSTextViewDelegate, NSTextStorageDelegate {
         }
     }
     
-    override func didChangeText() {
-        super.didChangeText()
-        self.invalidateIntrinsicContentSize()
+    func textView(_ textView: NSTextView, clickedOn cell: NSTextAttachmentCellProtocol, in cellFrame: NSRect, at charIndex: Int) {
+        if let urlcell = cell as? URLAttachmentCell,
+            let data = urlcell.attachment?.fileWrapper?.regularFileContents {
+            
+            let url = URL(dataRepresentation: data, relativeTo: nil)
+            
+            self.possibleActiveCell = urlcell
+            
+            let menu = NSMenu(title: "ファイルメニュー")
+            menu.insertItem(withTitle: urlcell.stringValue, action: nil, keyEquivalent: "", at: 0)
+            menu.insertItem(withTitle: "Finderで開く", action: #selector(finderAction(sender:)), keyEquivalent: "", at: 1)
+            
+            menu.popUp(positioning: nil, at: NSMakePoint(cellFrame.origin.x, cellFrame.origin.y + cellFrame.height), in: self)
+        }
+    }
+    @objc func finderAction(sender: Any) {
+        if let cell = possibleActiveCell {
+            let ws = NSWorkspace.shared
+            let path = cell.stringValue
+            ws.selectFile(path, inFileViewerRootedAtPath: "")
+        }
     }
 }
 

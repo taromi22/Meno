@@ -82,7 +82,6 @@ class EditView: NSView {
         textView.textContainer?.containerSize = NSMakeSize(frameRect.width, CGFloat.greatestFiniteMagnitude)
         textView.textContainer?.widthTracksTextView = true
         textView.textContainerInset = NSSize(width: 20.0, height: 10.0)
-        
         self.addSubview(textView)
         
         // textViewのサイズ変更を監視し，それに合わせてサイズ変更

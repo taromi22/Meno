@@ -55,7 +55,12 @@ class WindowController: NSWindowController, ItemsViewControllerDelegate {
                 let url = openPanel.url!
                 
                 self.dbManager?.open(url: url) { (result) in
-                    self.titlesViewController.setItems((self.dbManager?.getProfile())!)
+                    if let profiles = self.dbManager?.getProfile() {
+                        self.titlesViewController.setItems(profiles, didSet: {
+                            // 項目の準備ができ，一番上の項目が選択され，内容の表示まで終わったとき
+                            self.window?.makeFirstResponder(self.editViewController.contentView.textView)
+                        })
+                    }
                 }
             }
         }
@@ -74,7 +79,7 @@ class WindowController: NSWindowController, ItemsViewControllerDelegate {
     @IBAction func addAction(_ sender: Any) {
         if let id = dbManager!.addNew() {
             titlesViewController.addItem(NoteProfile(id: id, title: "", text: "", date: NSDate()))
-            self.window!.makeFirstResponder(self.editViewController!.textView)
+            self.window!.makeFirstResponder(self.editViewController.titleField)
         }
     }
     @IBAction func removeAction(_ sender: Any) {
