@@ -14,8 +14,9 @@ let MARGIN_OUT_X: CGFloat = 4.0
 let ICON_SIZE: CGFloat = 16.0
 
 class URLAttachmentCell: NSTextAttachmentCell {
+    
     var textSize: NSSize {
-        let text = self.stringValue as NSString
+        let text = self.stringValue.lastPathComponent as NSString
         return text.size(withAttributes: nil)
     }
     
@@ -23,7 +24,7 @@ class URLAttachmentCell: NSTextAttachmentCell {
         didSet {
             if attachment?.contents != nil {
                 if let url = URL(dataRepresentation: attachment!.contents!, relativeTo: nil) {
-                    self.stringValue = url.lastPathComponent
+                    self.stringValue = url.path
                     
                     let ws = NSWorkspace.shared
                     
@@ -32,7 +33,7 @@ class URLAttachmentCell: NSTextAttachmentCell {
             } else if attachment?.fileWrapper != nil {
                 if let data = attachment!.fileWrapper!.regularFileContents,
                    let url = URL(dataRepresentation: data, relativeTo: nil) {
-                    self.stringValue = url.lastPathComponent
+                    self.stringValue = url.path
                     
                     let ws = NSWorkspace.shared
                     
@@ -60,7 +61,7 @@ class URLAttachmentCell: NSTextAttachmentCell {
         let iconSize = NSSize(width: ICON_SIZE, height: ICON_SIZE)
         let iconOrigin = NSPoint(x: drawingFrame.origin.x + MARGIN_X, y: drawingFrame.origin.y + MARGIN_Y)
         
-        let text = self.stringValue as NSString
+        let text = self.stringValue.lastPathComponent as NSString
         var textOrigin = NSPoint(x: drawingFrame.origin.x + MARGIN_X, y: drawingFrame.origin.y + drawingFrame.height/2 - text.size(withAttributes: nil).height/2)
         var textSize = NSSize(width: drawingFrame.size.width - 2*MARGIN_X, height: drawingFrame.size.height)
         
