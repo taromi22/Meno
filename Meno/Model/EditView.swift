@@ -99,6 +99,10 @@ class EditView: NSView {
                 self.scroll(NSMakePoint(0.0, self.frame.height))
             }
         }
+        // textViewの内容が変更されたらdelegateに通知
+        NotificationCenter.default.addObserver(forName: NSTextView.didChangeNotification, object: textView, queue: OperationQueue.main) { (notif) in
+            self.delegate?.editViewContentChanged()
+        }
     }
     
     required init?(coder decoder: NSCoder) {
@@ -127,4 +131,5 @@ extension EditView: NSTextFieldDelegate {
 
 protocol EditViewDelegate: class {
     func editViewTitleChanged(string: String)
+    func editViewContentChanged()
 }

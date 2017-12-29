@@ -12,6 +12,7 @@ class EditViewController: NSViewController {
     
     var scrollView: NSScrollView!
     var contentView: EditView!
+    var isModified: Bool = false
     
     var textView: MTextView! {
         get {
@@ -53,10 +54,11 @@ class EditViewController: NSViewController {
     
     func saveAndLoad(newProfile: NoteProfile) {
         // 保存処理
-        if  let oldProfile = self.showingProfile {
+        if isModified, let oldProfile = self.showingProfile {
             dbManager!.saveProfile(profile: oldProfile)
             dbManager!.saveNote(id: oldProfile.id, content: self.textStorage!)
         }
+        self.isModified = false
         // 表示
         let atrstring = dbManager!.getNote(id: newProfile.id)
         self.textStorage!.setAttributedString(atrstring ?? NSAttributedString())
@@ -69,9 +71,10 @@ class EditViewController: NSViewController {
 
 extension EditViewController: EditViewDelegate {
     func editViewTitleChanged(string: String) {
-        if let profile = self.showingProfile {
-            self.showingProfile?.title = self.titleField.stringValue
-            dbManager!.saveProfile(profile: profile)
-        }
+        self.isModified = true
+        self.showingProfile?.title = self.titleField.stringValue
+    }
+    func editViewContentChanged() {
+        self.isModified = true
     }
 }
