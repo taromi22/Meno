@@ -21,6 +21,8 @@ class WindowController: NSWindowController, ItemsViewControllerDelegate {
     var editViewController: EditViewController! {
         return splitViewController?.editViewController
     }
+    
+    var originURL: URL? = nil
 
     override func windowDidLoad() {
         super.windowDidLoad()
@@ -55,6 +57,11 @@ class WindowController: NSWindowController, ItemsViewControllerDelegate {
                 let url = openPanel.url!
                 
                 self.dbManager?.open(url: url) { (result) in
+                    if !result { return }
+                    
+                    self.originURL = url
+                    self.window!.title = url.path
+                    
                     if let profiles = self.dbManager?.getProfile() {
                         self.titlesViewController.setItems(profiles, didSet: {
                             // 項目の準備ができ，一番上の項目が選択され，内容の表示まで終わったとき
