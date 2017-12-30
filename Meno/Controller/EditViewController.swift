@@ -24,6 +24,11 @@ class EditViewController: NSViewController {
             return contentView.titleField
         }
     }
+    var dateField: NSTextField! {
+        get {
+            return contentView.dateField
+        }
+    }
     var dbManager: DBManager?
     var showingProfile: NoteProfile?
     var text: String {
@@ -64,6 +69,7 @@ class EditViewController: NSViewController {
         self.textStorage!.setAttributedString(atrstring ?? NSAttributedString())
         self.titleField.stringValue = newProfile.title
         self.showingProfile = newProfile
+        self.dateField.stringValue = newProfile.updatedDate.description(with: Locale.current)
         // カーソルをトップへ　（一番上へスクロールさせるためのフラグとして用いている)
         self.textView.setSelectedRange(NSMakeRange(0, 0))
     }
@@ -71,10 +77,14 @@ class EditViewController: NSViewController {
 
 extension EditViewController: EditViewDelegate {
     func editViewTitleChanged(string: String) {
-        self.isModified = true
         self.showingProfile?.title = self.titleField.stringValue
+        self.isModified = true
+        self.showingProfile?.updatedDate = Date()
+        self.dateField.stringValue = self.showingProfile?.updatedDate.description(with: Locale.current) ?? ""
     }
     func editViewContentChanged() {
         self.isModified = true
+        self.showingProfile?.updatedDate = Date()
+        self.dateField.stringValue = self.showingProfile?.updatedDate.description(with: Locale.current) ?? ""
     }
 }

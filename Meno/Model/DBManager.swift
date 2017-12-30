@@ -27,45 +27,53 @@ class DBManager: NSObject {
     }
     
     func getProfile() -> [NoteProfile] {
-        let results = db?.executeQuery("SELECT ID, TITLE FROM ITEMS", withParameterDictionary: nil)
+        let results = db?.executeQuery("SELECT ID, TITLE, STRING, DATE_UPDATE, DATE_CREATE, ORDER_NUMBER FROM ITEMS", withParameterDictionary: nil)
         var profiles: [NoteProfile] = []
         
         if let results = results {
             while results.next() {
                 let title = results.string(forColumn: "TITLE") ?? ""
-                let id = Int(results.int(forColumn: "ID"))
+                let id = results.int(forColumn: "ID")
+                let string = results.string(forColumn: "STRING") ?? ""
+                let updatedDate = results.date(forColumn: "DATE_UPDATE") ?? Date()
+                let createdDate = results.date(forColumn: "DATE_CREATE") ?? Date()
+                let order = results.int(forColumn: "ORDER_NUMBER")
                 
-                profiles.append(NoteProfile(id: id, title: title, text: "", date: NSDate()))
+                profiles.append(NoteProfile(id: id, title: title, string: string, updatedDate: updatedDate, createdDate: createdDate, order: order))
             }
         }
         
         return profiles
     }
     
-    func getProfile(id: Int) -> NoteProfile? {
-        let results = db?.executeQuery("SELECT ID, TITLE FROM ITEMS", withParameterDictionary: nil)
+    func getProfile(id: Int32) -> NoteProfile? {
+        let results = db?.executeQuery("SELECT ID, TITLE, STRING, DATE_UPDATE, DATE_CREATE, ORDER_NUMBER FROM ITEMS", withParameterDictionary: nil)
         
         if let results = results {
             results.next()
+            let id = results.int(forColumn: "ID")
             let title = results.string(forColumn: "TITLE") ?? ""
-            let id = Int(results.int(forColumn: "ID"))
-                
-            return NoteProfile(id: id, title: title, text: "", date: NSDate())
+            let string = results.string(forColumn: "STRING") ?? ""
+            let updatedDate: Date = results.date(forColumn: "DATE_UPDATE") ?? Date()
+            let createdDate: Date = results.date(forColumn: "DATE_CREATE") ?? Date()
+            let order = results.int(forColumn: "ORDER_NUMBER")
+            
+            return NoteProfile(id: id, title: title, string: string, updatedDate: updatedDate, createdDate: createdDate, order: order)
         }
         
         return nil
     }
     
     func saveProfile(profile: NoteProfile) {
-        db!.executeUpdate("UPDATE ITEMS SET TITLE=? WHERE ID=?", withArgumentsIn: [profile.title, profile.id])
+        db!.executeUpdate("UPDATE ITEMS SET TITLE=?, STRING=?, DATE_UPDATE=?, DATE_CREATE=?, ORDER_NUMBER=? WHERE ID=?", withArgumentsIn: [profile.title, profile.string, profile.updatedDate as NSDate, profile.createdDate as NSDate, profile.order, profile.id])
     }
     
-    func getNote(id: Int) -> NSAttributedString? {
-        let results = db?.executeQuery("SELECT TEXT FROM ITEMS WHERE ID=\(id)", withParameterDictionary: nil)
+    func getNote(id: Int32) -> NSAttributedString? {
+        let results = db?.executeQuery("SELECT CONTENT FROM ITEMS WHERE ID=\(id)", withParameterDictionary: nil)
         
         if let results = results {
             results.next()
-            if let data = results.data(forColumn: "TEXT") {
+            if let data = results.data(forColumn: "CONTENT") {
                 return NSKeyedUnarchiver.unarchiveObject(with: data) as? NSAttributedString
             } else {
                 return nil
@@ -76,24 +84,24 @@ class DBManager: NSObject {
     }
     
     @discardableResult
-    func saveNote(id: Int, content: NSAttributedString) -> Bool {
+    func saveNote(id: Int32, content: NSAttributedString) -> Bool {
         let data = NSKeyedArchiver.archivedData(withRootObject: content)
         
-        return db!.executeUpdate("UPDATE ITEMS SET TEXT=? WHERE ID=\(id)", withArgumentsIn: [data])
+        return db!.executeUpdate("UPDATE ITEMS SET CONTENT=? WHERE ID=\(id)", withArgumentsIn: [data])
     }
     
-    func addNew() -> Int? {
-        if db!.executeUpdate("INSERT INTO ITEMS(TEXT) VALUES(?)", withArgumentsIn: [NSAttributedString()]) {
+    func addNew() -> Int32? {
+        if db!.executeUpdate("INSERT INTO ITEMS(TITLE, CONTENT, STRING, DATE_UPDATE, DATE_CREATE) VALUES(?, ?, ?, ?, ?)", withArgumentsIn: ["", NSKeyedArchiver.archivedData(withRootObject: NSAttributedString()), "", NSDate(), NSDate()]) {
             let results = db!.executeQuery("SELECT ID FROM ITEMS WHERE ROWID = last_insert_rowid()", withParameterDictionary: nil)
             if let results = results {
                 results.next()
-                return Int(results.int(forColumn: "ID"))
+                return results.int(forColumn: "ID")
             }
         }
         return nil
     }
     
-    func removeItem(id: Int) -> Bool {
+    func removeItem(id: Int32) -> Bool {
         return db!.executeUpdate("DELETE FROM ITEMS WHERE ID = \(id)", withParameterDictionary: [:])
     }
 }

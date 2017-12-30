@@ -36,12 +36,11 @@ class MTextView: NSTextView, NSTextViewDelegate, NSTextStorageDelegate {
         self.textStorage?.delegate = self
     }
     
-    // このクラスでドラッグを処理すべきかどうか．そうでないときは上に投げる
+    // このクラスでドラッグを処理すべきかどうか．そうでないときはスーパークラスに投げる
     func shouldHandleDrag(_ draggingInfo: NSDraggingInfo) -> Bool {
         let pboard = draggingInfo.draggingPasteboard()
 
-        if pboard.canReadObject(forClasses: [NSURL.self], options: nil) &&
-            draggingInfo.draggingSource() as AnyObject? !== self {
+        if pboard.availableType(from: [.fileURL]) == NSPasteboard.PasteboardType.fileURL {
             return true
         }
         return false
@@ -69,15 +68,16 @@ class MTextView: NSTextView, NSTextViewDelegate, NSTextStorageDelegate {
 
         let dropPoint = self.convert(sender.draggingLocation(), from: nil)
         let caretLocation = self.characterIndexForInsertion(at: dropPoint)
-
+        
         if let urls = pboard.readObjects(forClasses: [NSURL.self], options: nil) as? [URL],
             let storage = self.textStorage {
 
             for url in urls {
                 if let path = url.path.removingPercentEncoding {
                     let cell = URLAttachmentCell()
-                    let textAttachment = NSTextAttachment(fileWrapper: self.fileWrapper(with: "url", data: url.dataRepresentation))
                     
+                    let textAttachment = NSTextAttachment(fileWrapper: self.fileWrapper(with: path, data: url.dataRepresentation))
+                    cell.identifier = NSUserInterfaceItemIdentifier(path)
                     textAttachment.attachmentCell = cell
 
                     let cellstring = NSAttributedString(attachment: textAttachment)
@@ -85,8 +85,9 @@ class MTextView: NSTextView, NSTextViewDelegate, NSTextStorageDelegate {
                 }
             }
 
-            self.display()
-
+            // 変更通知 (storageへの直接の追加は自動通知されない)
+            self.didChangeText()
+            
             return true
         }
         return false
@@ -102,19 +103,20 @@ class MTextView: NSTextView, NSTextViewDelegate, NSTextStorageDelegate {
     }
     
     func textView(_ view: NSTextView, writablePasteboardTypesFor cell: NSTextAttachmentCellProtocol, at charIndex: Int) -> [NSPasteboard.PasteboardType] {
-        return [NSPasteboard.PasteboardType.fileURL]
+        return [.fileContents]
     }
 
-    
     // 外にドラッグするときにちゃんとファイルURLをコピーしたい
     func textView(_ view: NSTextView, write cell: NSTextAttachmentCellProtocol, at charIndex: Int, to pboard: NSPasteboard, type: NSPasteboard.PasteboardType) -> Bool {
-        if type == .fileURL && cell is URLAttachmentCell {
+        if type == .fileURL {
             if let data = cell.attachment?.fileWrapper?.regularFileContents,
                let url = URL(dataRepresentation: data, relativeTo: nil) {
                 pboard.writeObjects([url as NSURL])
+                
+                return true
             }
         }
-        return true
+        return false
     }
     
     
@@ -122,14 +124,14 @@ class MTextView: NSTextView, NSTextViewDelegate, NSTextStorageDelegate {
             let text = self.textStorage!
             let length = text.length
             var effectiveRange = NSMakeRange(0, 0)
-        
+
             while NSMaxRange(effectiveRange) < length {
                 if let attachment = text.attribute(.attachment, at: NSMaxRange(effectiveRange), effectiveRange: &effectiveRange) as? NSTextAttachment {
                     if !(attachment.attachmentCell is URLAttachmentCell) {
                         if let filename = attachment.fileWrapper?.preferredFilename {
                             if filename.pathExtension == "url" &&
                                 filename.deletingPathExtension.pathExtension == "meno" {
-                                
+
                                 let cell = URLAttachmentCell()
                                 attachment.attachmentCell = cell
                             }

@@ -10,7 +10,7 @@
 import Cocoa
 
 class NoteProfile: NSObject {
-    @objc var id: Int
+    @objc var id: Int32
     @objc var title: String {
         //  titleForPresentationの変更通知を手動で呼ぶ
         willSet {
@@ -20,8 +20,10 @@ class NoteProfile: NSObject {
             self.didChangeValue(forKey: "titleForPresentation")
         }
     }
-    @objc var text: String
-    @objc var updatedDate: NSDate
+    @objc var string: String
+    @objc var updatedDate: Date
+    @objc var createdDate: Date
+    @objc var order: Int32
     @objc var titleForPresentation: String {
         get {
             if self.title == "" {
@@ -32,10 +34,12 @@ class NoteProfile: NSObject {
         }
     }
     
-    init(id: Int, title: String, text: String, date: NSDate) {
+    init(id: Int32, title: String, string: String, updatedDate: Date, createdDate: Date, order: Int32) {
         self.id = id
         self.title = title
-        self.text = text
-        self.updatedDate = date
+        self.string = string
+        self.updatedDate = updatedDate
+        self.createdDate = createdDate
+        self.order = order
     }
 }

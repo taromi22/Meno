@@ -17,10 +17,22 @@ class ItemsViewController: NSViewController, NSTableViewDataSource, NSTableViewD
     var preSelectedProfile: NoteProfile? = nil
     @objc var items = [NoteProfile]()
     
+    var maxOrder: Int32? {
+        get {
+            if let showingItems = self.arrayController.arrangedObjects as? [NoteProfile] {
+                return showingItems.last?.order
+            }
+            return nil
+        }
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
         tableView.delegate = self
+        
+        let sortDescriptor = NSSortDescriptor(key: "self.order", ascending: true)
+        arrayController.sortDescriptors = [sortDescriptor]
     }
     
     override var representedObject: Any? {
@@ -73,13 +85,13 @@ class ItemsViewController: NSViewController, NSTableViewDataSource, NSTableViewD
     func addItem(_ item: NoteProfile) {
         self.preSelectedProfile = selectedProfile
         
-        NSAnimationContext.runAnimationGroup({ (context) in
-            self.tableView.insertRows(at: IndexSet(integer: 0), withAnimation: .slideDown)
-        }) {
-            self.arrayController.insert(item, atArrangedObjectIndex: 0)
+//        NSAnimationContext.runAnimationGroup({ (context) in
+//            self.tableView.insertRows(at: IndexSet(integer: 0), withAnimation: .slideDown)
+//        }) {
+            self.arrayController.insert(item, atArrangedObjectIndex: self.arrayController.selectionIndex)
             
             self.delegate?.itemsViewControllerSelectionChanged(newProfile: item, oldProfile: &self.preSelectedProfile)
-        }
+//        }
         
         self.preSelectedProfile = selectedProfile
     }
@@ -105,7 +117,7 @@ class ItemsViewController: NSViewController, NSTableViewDataSource, NSTableViewD
     
     func setItems(_ items: [NoteProfile], didSet: ()->()) {
         self.arrayController.add(contentsOf: items)
-        
+        self.arrayController.rearrangeObjects()
         self.arrayController.setSelectionIndex(0)
         
         didSet()

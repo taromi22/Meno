@@ -20,8 +20,6 @@ class SplitViewController: NSSplitViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        
-
         self.splitView.setPosition(CGFloat(300), ofDividerAt: 0)
     }
     

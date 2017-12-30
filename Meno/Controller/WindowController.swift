@@ -85,7 +85,22 @@ class WindowController: NSWindowController, ItemsViewControllerDelegate {
 
     @IBAction func addAction(_ sender: Any) {
         if let id = dbManager!.addNew() {
-            titlesViewController.addItem(NoteProfile(id: id, title: "", text: "", date: NSDate()))
+            var order = titlesViewController.selectedProfile?.order
+            if order == nil {
+                // 万が一選択されていないときは一番下．
+                order = titlesViewController.maxOrder ?? 0
+            }
+            
+            if let items = self.titlesViewController.arrayController.arrangedObjects as? [NoteProfile] {
+                for profile in items {
+                    if let order = order, profile.order >= order {
+                        profile.order += 1
+                    }
+                }
+            }
+            let profile = NoteProfile(id: id, title: "", string: "", updatedDate: Date(), createdDate: Date(), order: order!)
+            titlesViewController.addItem(profile)
+            dbManager!.saveProfile(profile: profile)
             self.window!.makeFirstResponder(self.editViewController.titleField)
         }
     }
