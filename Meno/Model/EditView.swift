@@ -13,6 +13,13 @@ class EditView: NSView {
     let titleHeight: CGFloat = 38.0
     let titleMargin: NSSize = NSMakeSize(8.0, 8.0)
     
+    var controller: EditViewController! {
+        didSet {
+            if let textView = self.textView {
+                textView.controller = self.controller
+            }
+        }
+    }
     var headerHeight: CGFloat {
         get {
             return dateHeight + titleHeight + titleMargin.height*2
@@ -83,6 +90,7 @@ class EditView: NSView {
         textView.textContainer?.widthTracksTextView = true
         textView.textContainerInset = NSSize(width: 20.0, height: 10.0)
         textView.importsGraphics = true
+        textView.controller = self.controller
         self.addSubview(textView)
         
         // textViewのサイズ変更を監視し，それに合わせてサイズ変更

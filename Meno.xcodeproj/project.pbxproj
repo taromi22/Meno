@@ -21,7 +21,6 @@
 		5A485F0A1FBEF05C00175169 /* NoteProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A485F091FBEF05C00175169 /* NoteProfile.swift */; };
 		5AA091831FEF733300FFD5C3 /* TitleField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5AA091821FEF733300FFD5C3 /* TitleField.swift */; };
 		5AA091851FEFF45F00FFD5C3 /* TitleFieldCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5AA091841FEFF45F00FFD5C3 /* TitleFieldCell.swift */; };
-		5AA091C31FF7ED1500FFD5C3 /* QLController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5AA091C21FF7ED1400FFD5C3 /* QLController.swift */; };
 		5AD6F6D11FDC45BF00E6427D /* EditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5AD6F6D01FDC45BF00E6427D /* EditView.swift */; };
 		AE7AF2BDD8D9B1D81E3242B7 /* Pods_Meno.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2477455312ED6AB0263ED9DE /* Pods_Meno.framework */; };
 /* End PBXBuildFile section */
@@ -45,7 +44,6 @@
 		5A485F091FBEF05C00175169 /* NoteProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoteProfile.swift; sourceTree = "<group>"; };
 		5AA091821FEF733300FFD5C3 /* TitleField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TitleField.swift; sourceTree = "<group>"; };
 		5AA091841FEFF45F00FFD5C3 /* TitleFieldCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TitleFieldCell.swift; sourceTree = "<group>"; };
-		5AA091C21FF7ED1400FFD5C3 /* QLController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QLController.swift; sourceTree = "<group>"; };
 		5AD6F6D01FDC45BF00E6427D /* EditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditView.swift; sourceTree = "<group>"; };
 		CA994BC6EE4ED591F96D8487 /* Pods-Meno.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Meno.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Meno/Pods-Meno.debug.xcconfig"; sourceTree = "<group>"; };
 		DC2EA303C9008D10B26E5E0D /* Pods-Meno.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Meno.release.xcconfig"; path = "Pods/Target Support Files/Pods-Meno/Pods-Meno.release.xcconfig"; sourceTree = "<group>"; };
@@ -124,7 +122,6 @@
 				5A485F071FBE735B00175169 /* DBManager.swift */,
 				5A485F091FBEF05C00175169 /* NoteProfile.swift */,
 				5A1F34881FC3019700E2DBDC /* MTextView.swift */,
-				5AA091C21FF7ED1400FFD5C3 /* QLController.swift */,
 				5A13C8061FC942F700F333A7 /* URLAttachmentCell.swift */,
 				5AA091821FEF733300FFD5C3 /* TitleField.swift */,
 				5AA091841FEFF45F00FFD5C3 /* TitleFieldCell.swift */,
@@ -300,7 +297,6 @@
 				5A485EFC1FBB22B700175169 /* WindowController.swift in Sources */,
 				5A485EFE1FBB286800175169 /* SplitViewController.swift in Sources */,
 				5A485F081FBE735B00175169 /* DBManager.swift in Sources */,
-				5AA091C31FF7ED1500FFD5C3 /* QLController.swift in Sources */,
 				5AA091851FEFF45F00FFD5C3 /* TitleFieldCell.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

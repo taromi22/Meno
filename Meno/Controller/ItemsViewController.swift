@@ -128,19 +128,15 @@ class ItemsViewController: NSViewController, NSTableViewDataSource, NSTableViewD
         didSet()
     }
     func raiseSelectedItem() {
-        
-        if let view = self.tableView.rowView(atRow: self.tableView.selectedRow, makeIfNecessary: false) {
-        
-            NSAnimationContext.runAnimationGroup({ (context) in
-                context.allowsImplicitAnimation = true
-                context.duration = 0.5
-                
-                self.tableView.moveRow(at: self.tableView.selectedRow, to: 0)
-                
-                self.tableView.scrollRowToVisible(0)
-            }) {
-                self.arrayController.rearrangeObjects()
-        }
+        NSAnimationContext.runAnimationGroup({ (context) in
+            context.allowsImplicitAnimation = true
+            context.duration = 0.5
+            
+            self.tableView.moveRow(at: self.tableView.selectedRow, to: 0)
+            
+            self.tableView.scrollRowToVisible(0)
+        }) {
+            self.arrayController.rearrangeObjects()
         }
     }
 }

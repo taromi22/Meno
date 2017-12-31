@@ -49,6 +49,7 @@ class EditViewController: NSViewController {
         scrollView.autoresizingMask = [.width, .height]
         
         self.contentView = EditView(frame: NSMakeRect(0, 0, scrollView.contentSize.width, scrollView.contentSize.height))
+        self.contentView.controller = self
         self.contentView.minSize = scrollView.contentSize
         self.contentView.autoresizingMask = [.width]
         self.contentView.delegate = self

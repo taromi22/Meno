@@ -14,6 +14,7 @@ class MTextView: NSTextView, NSTextViewDelegate, NSTextStorageDelegate {
     // 現在メニューを表示している可能性のあるCell (メニューを表示するときに対象のCellをこの変数に入れる)
     var possibleActiveCell: URLAttachmentCell?
     var previewingURL: NSURL?
+    var controller: EditViewController!
     
     override init(frame frameRect: NSRect) {
         super.init(frame: frameRect)
@@ -73,7 +74,9 @@ class MTextView: NSTextView, NSTextViewDelegate, NSTextStorageDelegate {
             let storage = self.textStorage {
 
             for url in urls {
-                if let path = url.path.removingPercentEncoding {
+                let relativeURL = URL(fileURLWithPath: url.path, relativeTo: self.controller.dbManager!.originURL!)
+                
+                if let path = relativeURL.path.removingPercentEncoding {
                     let cell = URLAttachmentCell()
                     
                     let textAttachment = NSTextAttachment(fileWrapper: self.fileWrapper(with: path, data: url.dataRepresentation))
@@ -184,7 +187,7 @@ class MTextView: NSTextView, NSTextViewDelegate, NSTextStorageDelegate {
     }
     @objc func QLAction(sender: Any) {
         
-        if let urlcell = self.possibleActiveCell as? URLAttachmentCell,
+        if let urlcell = self.possibleActiveCell,
            let data = urlcell.attachment?.fileWrapper?.regularFileContents {
             
             self.previewingURL = NSURL(dataRepresentation: data, relativeTo: nil)

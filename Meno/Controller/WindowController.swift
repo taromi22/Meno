@@ -21,8 +21,6 @@ class WindowController: NSWindowController, ItemsViewControllerDelegate {
     var editViewController: EditViewController! {
         return splitViewController?.editViewController
     }
-    
-    var originURL: URL? = nil
 
     override func windowDidLoad() {
         super.windowDidLoad()
@@ -60,7 +58,6 @@ class WindowController: NSWindowController, ItemsViewControllerDelegate {
                 self.dbManager?.open(url: url) { (result) in
                     if !result { return }
                     
-                    self.originURL = url
                     self.window!.title = url.path
                     
                     if let profiles = self.dbManager?.getProfile() {
