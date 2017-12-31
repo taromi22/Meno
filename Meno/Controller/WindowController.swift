@@ -39,6 +39,7 @@ class WindowController: NSWindowController, ItemsViewControllerDelegate {
         editViewController.dbManager = dbManager
         
         titlesViewController.delegate = self
+        editViewController.delegate = self
     }
     
     override func showWindow(_ sender: Any?) {
@@ -85,20 +86,7 @@ class WindowController: NSWindowController, ItemsViewControllerDelegate {
 
     @IBAction func addAction(_ sender: Any) {
         if let id = dbManager!.addNew() {
-            var order = titlesViewController.selectedProfile?.order
-            if order == nil {
-                // 万が一選択されていないときは一番下．
-                order = titlesViewController.maxOrder ?? 0
-            }
-            
-            if let items = self.titlesViewController.arrayController.arrangedObjects as? [NoteProfile] {
-                for profile in items {
-                    if let order = order, profile.order >= order {
-                        profile.order += 1
-                    }
-                }
-            }
-            let profile = NoteProfile(id: id, title: "", string: "", updatedDate: Date(), createdDate: Date(), order: order!)
+            let profile = NoteProfile(id: id, title: "", string: "", updatedDate: Date(), createdDate: Date(), order: 0)
             titlesViewController.addItem(profile)
             dbManager!.saveProfile(profile: profile)
             self.window!.makeFirstResponder(self.editViewController.titleField)
@@ -116,5 +104,11 @@ class WindowController: NSWindowController, ItemsViewControllerDelegate {
         let dic = self.editViewController.textStorage?.attributes(at: self.editViewController.textView.selectedRange().location, effectiveRange: &range)
         
         print(dic)
+    }
+}
+
+extension WindowController: EditViewControllerDelegate {
+    func editViewControllerContentChanged() {
+        self.titlesViewController.raiseSelectedItem()
     }
 }

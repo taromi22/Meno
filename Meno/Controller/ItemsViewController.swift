@@ -31,13 +31,13 @@ class ItemsViewController: NSViewController, NSTableViewDataSource, NSTableViewD
         
         tableView.delegate = self
         
-        let sortDescriptor = NSSortDescriptor(key: "self.order", ascending: true)
+        let sortDescriptor = NSSortDescriptor(key: "self.updatedDate", ascending: false)
         arrayController.sortDescriptors = [sortDescriptor]
     }
     
     override var representedObject: Any? {
         didSet {
-            
+            // 今後ここに保存・ロード処理を入れることでバインディングを活用する？
         }
     }
     
@@ -50,14 +50,23 @@ class ItemsViewController: NSViewController, NSTableViewDataSource, NSTableViewD
     }
     
     func tableView(_ tableView: NSTableView, selectionIndexesForProposedSelection proposedSelectionIndexes: IndexSet) -> IndexSet {
-        let newProfile = selectedProfile
+        
+        var decidedIndexes = proposedSelectionIndexes
+        
+        if proposedSelectionIndexes.count == 0 {
+            decidedIndexes = IndexSet.init(integer: tableView.selectedRow)
+        }
+        
+        // 以下の実装は間違い．１つ前のものを参照している
+        let newProfile = self.selectedProfile
         delegate?.itemsViewControllerSelectionChanging(newProfile: newProfile, oldProfile: &self.preSelectedProfile)
         
-        return proposedSelectionIndexes
+        return decidedIndexes
     }
     
     func tableViewSelectionDidChange(_ notification: Notification) {
         let newProfile = selectedProfile
+        
         delegate?.itemsViewControllerSelectionChanged(newProfile: newProfile, oldProfile: &self.preSelectedProfile)
         self.preSelectedProfile = newProfile
     }
@@ -85,14 +94,10 @@ class ItemsViewController: NSViewController, NSTableViewDataSource, NSTableViewD
     func addItem(_ item: NoteProfile) {
         self.preSelectedProfile = selectedProfile
         
-//        NSAnimationContext.runAnimationGroup({ (context) in
-//            self.tableView.insertRows(at: IndexSet(integer: 0), withAnimation: .slideDown)
-//        }) {
-            self.arrayController.insert(item, atArrangedObjectIndex: self.arrayController.selectionIndex)
+        self.arrayController.insert(item, atArrangedObjectIndex: 0)
             
-            self.delegate?.itemsViewControllerSelectionChanged(newProfile: item, oldProfile: &self.preSelectedProfile)
-//        }
-        
+        self.delegate?.itemsViewControllerSelectionChanged(newProfile: item, oldProfile: &self.preSelectedProfile)
+
         self.preSelectedProfile = selectedProfile
     }
     
@@ -121,6 +126,22 @@ class ItemsViewController: NSViewController, NSTableViewDataSource, NSTableViewD
         self.arrayController.setSelectionIndex(0)
         
         didSet()
+    }
+    func raiseSelectedItem() {
+        
+        if let view = self.tableView.rowView(atRow: self.tableView.selectedRow, makeIfNecessary: false) {
+        
+            NSAnimationContext.runAnimationGroup({ (context) in
+                context.allowsImplicitAnimation = true
+                context.duration = 0.5
+                
+                self.tableView.moveRow(at: self.tableView.selectedRow, to: 0)
+                
+                self.tableView.scrollRowToVisible(0)
+            }) {
+                self.arrayController.rearrangeObjects()
+        }
+        }
     }
 }
 

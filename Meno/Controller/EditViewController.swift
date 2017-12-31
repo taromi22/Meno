@@ -13,6 +13,7 @@ class EditViewController: NSViewController {
     var scrollView: NSScrollView!
     var contentView: EditView!
     var isModified: Bool = false
+    var delegate: EditViewControllerDelegate?
     
     var textView: MTextView! {
         get {
@@ -73,18 +74,26 @@ class EditViewController: NSViewController {
         // カーソルをトップへ　（一番上へスクロールさせるためのフラグとして用いている)
         self.textView.setSelectedRange(NSMakeRange(0, 0))
     }
+    
+    func didChange() {
+        self.isModified = true
+        self.showingProfile?.updatedDate = Date()
+        self.dateField.stringValue = self.showingProfile?.updatedDate.description(with: Locale.current) ?? ""
+        self.delegate?.editViewControllerContentChanged()
+    }
 }
 
 extension EditViewController: EditViewDelegate {
     func editViewTitleChanged(string: String) {
         self.showingProfile?.title = self.titleField.stringValue
-        self.isModified = true
-        self.showingProfile?.updatedDate = Date()
-        self.dateField.stringValue = self.showingProfile?.updatedDate.description(with: Locale.current) ?? ""
+        
+        self.didChange()
     }
     func editViewContentChanged() {
-        self.isModified = true
-        self.showingProfile?.updatedDate = Date()
-        self.dateField.stringValue = self.showingProfile?.updatedDate.description(with: Locale.current) ?? ""
+        self.didChange()
     }
+}
+
+protocol EditViewControllerDelegate: class {
+    func editViewControllerContentChanged()
 }

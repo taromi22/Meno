@@ -10,10 +10,10 @@ import Cocoa
 import Quartz
 
 class MTextView: NSTextView, NSTextViewDelegate, NSTextStorageDelegate {
-    
-    var selectingURL: URL?
+    var QLPanel: QLPreviewPanel?
     // 現在メニューを表示している可能性のあるCell (メニューを表示するときに対象のCellをこの変数に入れる)
     var possibleActiveCell: URLAttachmentCell?
+    var previewingURL: NSURL?
     
     override init(frame frameRect: NSRect) {
         super.init(frame: frameRect)
@@ -141,20 +141,30 @@ class MTextView: NSTextView, NSTextViewDelegate, NSTextStorageDelegate {
             }
     }
     
-//    func textView(_ textView: NSTextView, clickedOn cell: NSTextAttachmentCellProtocol, in cellFrame: NSRect, at charIndex: Int) {
-//        if let urlcell = cell as? URLAttachmentCell,
-//           let data = urlcell.attachment?.fileWrapper?.regularFileContents {
-//            let url = URL(dataRepresentation: data, relativeTo: nil)
-//            self.selectingURL = url
-//
-//            if let panel = QLPreviewPanel.shared() {
-//                panel.dataSource = self
-//                panel.makeKeyAndOrderFront(self)
-//            }
-//        }
-//    }
-    func textView(_ textView: NSTextView, doubleClickedOn cell: NSTextAttachmentCellProtocol, in cellFrame: NSRect, at charIndex: Int) {
-        if let urlcell = cell as? URLAttachmentCell,
+    func textView(_ textView: NSTextView, clickedOn cell: NSTextAttachmentCellProtocol, in cellFrame: NSRect, at charIndex: Int) {
+        if let urlcell = cell as? URLAttachmentCell {
+            
+            self.possibleActiveCell = urlcell
+            
+            // Preview中ならPreviewの内容を切り替え，そうでなければメニューを表示
+            if let qlPanel = self.QLPanel {
+                if let data = urlcell.attachment?.fileWrapper?.regularFileContents {
+                    self.previewingURL = NSURL(dataRepresentation: data, relativeTo: nil)
+                    qlPanel.reloadData()
+                }
+            } else {
+                let menu = NSMenu(title: "ファイルメニュー")
+                menu.insertItem(withTitle: urlcell.stringValue, action: nil, keyEquivalent: "", at: 0)
+                menu.insertItem(withTitle: "開く", action: #selector(openFileAction(sender:)), keyEquivalent: "", at: 1)
+                menu.insertItem(withTitle: "Finderで表示", action: #selector(finderAction(sender:)), keyEquivalent: "", at: 2)
+                menu.insertItem(withTitle: "QuickLook", action: #selector(QLAction(sender:)), keyEquivalent: " ", at: 3)
+                
+                menu.popUp(positioning: nil, at: NSMakePoint(cellFrame.origin.x, cellFrame.origin.y + cellFrame.height), in: self)
+            }
+        }
+    }
+    @objc func openFileAction(sender: Any) {
+        if let urlcell = self.possibleActiveCell,
             let data = urlcell.attachment?.fileWrapper?.regularFileContents {
             
             let url = URL(dataRepresentation: data, relativeTo: nil)
@@ -165,22 +175,6 @@ class MTextView: NSTextView, NSTextViewDelegate, NSTextStorageDelegate {
             }
         }
     }
-    
-    func textView(_ textView: NSTextView, clickedOn cell: NSTextAttachmentCellProtocol, in cellFrame: NSRect, at charIndex: Int) {
-        if let urlcell = cell as? URLAttachmentCell,
-            let data = urlcell.attachment?.fileWrapper?.regularFileContents {
-            
-            let url = URL(dataRepresentation: data, relativeTo: nil)
-            
-            self.possibleActiveCell = urlcell
-            
-            let menu = NSMenu(title: "ファイルメニュー")
-            menu.insertItem(withTitle: urlcell.stringValue, action: nil, keyEquivalent: "", at: 0)
-            menu.insertItem(withTitle: "Finderで開く", action: #selector(finderAction(sender:)), keyEquivalent: "", at: 1)
-            
-            menu.popUp(positioning: nil, at: NSMakePoint(cellFrame.origin.x, cellFrame.origin.y + cellFrame.height), in: self)
-        }
-    }
     @objc func finderAction(sender: Any) {
         if let cell = possibleActiveCell {
             let ws = NSWorkspace.shared
@@ -188,15 +182,49 @@ class MTextView: NSTextView, NSTextViewDelegate, NSTextStorageDelegate {
             ws.selectFile(path, inFileViewerRootedAtPath: "")
         }
     }
+    @objc func QLAction(sender: Any) {
+        
+        if let urlcell = self.possibleActiveCell as? URLAttachmentCell,
+           let data = urlcell.attachment?.fileWrapper?.regularFileContents {
+            
+            self.previewingURL = NSURL(dataRepresentation: data, relativeTo: nil)
+            
+            if let panel = QLPreviewPanel.shared() {
+                panel.makeKeyAndOrderFront(self)
+                panel.dataSource = self
+                panel.delegate = self
+                
+                self.QLPanel = panel
+            }
+        }
+    }
 }
 
-extension MTextView: QLPreviewPanelDataSource {
+extension MTextView: QLPreviewPanelDataSource, QLPreviewPanelDelegate {
+    
     func numberOfPreviewItems(in panel: QLPreviewPanel!) -> Int {
-        return 1
+        if self.possibleActiveCell != nil {
+            return 1
+        } else {
+            return 0
+        }
     }
     
     func previewPanel(_ panel: QLPreviewPanel!, previewItemAt index: Int) -> QLPreviewItem! {
-        return selectingURL! as NSURL
+        if let url = self.previewingURL {
+            return url
+        }
+        return NSURL()
     }
     
+    override func acceptsPreviewPanelControl(_ panel: QLPreviewPanel!) -> Bool {
+        return true
+    }
+    
+    override func beginPreviewPanelControl(_ panel: QLPreviewPanel!) {
+        
+    }
+    override func endPreviewPanelControl(_ panel: QLPreviewPanel!) {
+        self.QLPanel = nil
+    }
 }
