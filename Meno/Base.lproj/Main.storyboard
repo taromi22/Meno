@@ -3,6 +3,7 @@
     <dependencies>
         <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="13771"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+        <capability name="system font weights other than Regular or Bold" minToolsVersion="7.0"/>
     </dependencies>
     <scenes>
         <!--Application-->
@@ -726,7 +727,7 @@
                                 <toolbarItem implicitItemIdentifier="AC3234E0-0A7B-428D-BC3C-5934662DC6BD" label="" paletteLabel="" image="NSRemoveTemplate" id="jg2-iM-cXk">
                                     <nil key="toolTip"/>
                                     <size key="minSize" width="36" height="25"/>
-                                    <size key="maxSize" width="40" height="25"/>
+                                    <size key="maxSize" width="36" height="25"/>
                                     <button key="view" verticalHuggingPriority="750" id="akS-8k-Jmd">
                                         <rect key="frame" x="0.0" y="14" width="36" height="25"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
@@ -739,50 +740,212 @@
                                         <action selector="removeAction:" target="B8D-0N-5wS" id="3Hm-k5-YI4"/>
                                     </connections>
                                 </toolbarItem>
-                                <toolbarItem implicitItemIdentifier="E454E224-CF0E-4E86-B4EE-9A5F9311E4A5" label="GetAttributes" paletteLabel="GetAttributes" image="NSActionTemplate" id="deh-2w-hPq">
+                                <toolbarItem implicitItemIdentifier="9D18B28B-B93C-4274-AFFB-CE4339788D89" label="Bold" paletteLabel="Bold" tag="2" id="dGL-wz-vlr">
                                     <nil key="toolTip"/>
-                                    <size key="minSize" width="127" height="25"/>
-                                    <size key="maxSize" width="127" height="25"/>
-                                    <button key="view" verticalHuggingPriority="750" id="lgw-hL-AwT">
-                                        <rect key="frame" x="0.0" y="14" width="127" height="25"/>
+                                    <size key="minSize" width="36" height="25"/>
+                                    <size key="maxSize" width="37" height="31"/>
+                                    <button key="view" verticalHuggingPriority="750" tag="2" id="fZD-gL-BFu">
+                                        <rect key="frame" x="0.0" y="14" width="37" height="28"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                        <buttonCell key="cell" type="roundTextured" title="Textured Rounded" bezelStyle="texturedRounded" image="NSActionTemplate" imagePosition="only" alignment="center" lineBreakMode="truncatingTail" state="on" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="pmu-Iv-LVk">
-                                            <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
-                                            <font key="font" metaFont="system"/>
+                                        <buttonCell key="cell" type="roundTextured" title="B" bezelStyle="texturedRounded" alignment="center" lineBreakMode="truncatingTail" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="aYn-VO-1qg">
+                                            <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES" changeBackground="YES" changeGray="YES"/>
+                                            <font key="font" metaFont="systemHeavy" size="13"/>
+                                            <connections>
+                                                <action selector="addFontTrait:" target="DYF-2W-D6X" id="GG7-Cj-rXu"/>
+                                            </connections>
                                         </buttonCell>
                                     </button>
                                     <connections>
-                                        <action selector="getAttributesAction:" target="B8D-0N-5wS" id="aKf-Bc-y5p"/>
+                                        <action selector="boldAction:" target="B8D-0N-5wS" id="8OT-9v-23k"/>
                                     </connections>
                                 </toolbarItem>
-                                <toolbarItem implicitItemIdentifier="9D18B28B-B93C-4274-AFFB-CE4339788D89" label="Font" paletteLabel="Font" image="NSTouchBarVolumeUpTemplate" id="dGL-wz-vlr">
+                                <toolbarItem implicitItemIdentifier="BEE51745-C20A-4C82-A9FD-A4052A52BB76" label="Italic" paletteLabel="Italic" tag="1" id="jUh-9C-D7J">
                                     <nil key="toolTip"/>
                                     <size key="minSize" width="36" height="25"/>
-                                    <size key="maxSize" width="326" height="28"/>
-                                    <button key="view" verticalHuggingPriority="750" id="fZD-gL-BFu">
-                                        <rect key="frame" x="0.0" y="14" width="36" height="28"/>
+                                    <size key="maxSize" width="36" height="28"/>
+                                    <button key="view" verticalHuggingPriority="750" tag="1" id="h9E-o6-3po">
+                                        <rect key="frame" x="0.0" y="14" width="36" height="25"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                        <buttonCell key="cell" type="roundTextured" bezelStyle="texturedRounded" image="NSTouchBarVolumeUpTemplate" imagePosition="only" alignment="center" lineBreakMode="truncatingTail" state="on" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="aYn-VO-1qg">
-                                            <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
-                                            <font key="font" metaFont="system"/>
+                                        <buttonCell key="cell" type="roundTextured" title="I" bezelStyle="texturedRounded" alignment="center" lineBreakMode="truncatingTail" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="Stw-Qg-GOo">
+                                            <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES" changeBackground="YES" changeGray="YES"/>
+                                            <font key="font" size="13" name="TimesNewRomanPS-ItalicMT"/>
                                         </buttonCell>
+                                        <connections>
+                                            <action selector="addFontTrait:" target="DYF-2W-D6X" id="GNx-qZ-GfS"/>
+                                        </connections>
                                     </button>
                                 </toolbarItem>
                             </allowedToolbarItems>
                             <defaultToolbarItems>
                                 <toolbarItem reference="Ide-y6-dsD"/>
                                 <toolbarItem reference="jg2-iM-cXk"/>
-                                <toolbarItem reference="deh-2w-hPq"/>
+                                <toolbarItem reference="An6-bJ-PhV"/>
+                                <toolbarItem reference="dGL-wz-vlr"/>
+                                <toolbarItem reference="jUh-9C-D7J"/>
                                 <toolbarItem reference="An6-bJ-PhV"/>
                                 <toolbarItem reference="nHc-ue-1Dp"/>
                             </defaultToolbarItems>
                         </toolbar>
                     </window>
                     <connections>
+                        <outlet property="boldButton" destination="fZD-gL-BFu" id="jRR-gT-EB3"/>
+                        <outlet property="italicButton" destination="h9E-o6-3po" id="Byi-fP-pdd"/>
                         <segue destination="bQh-Dg-PJo" kind="relationship" relationship="window.shadowedContentViewController" id="BoY-Xh-gL4"/>
                     </connections>
                 </windowController>
                 <customObject id="Oky-zY-oP4" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
+                <menuItem title="Font" id="jO0-gz-8WV">
+                    <modifierMask key="keyEquivalentModifierMask"/>
+                    <menu key="submenu" title="Font" systemMenu="font" id="ztt-vx-k0I">
+                        <items>
+                            <menuItem title="Show Fonts" keyEquivalent="t" id="apQ-1l-WM7">
+                                <connections>
+                                    <action selector="orderFrontFontPanel:" target="DYF-2W-D6X" id="8bp-jI-j21"/>
+                                </connections>
+                            </menuItem>
+                            <menuItem title="Bold" tag="2" keyEquivalent="b" id="d8Q-Le-Pz9">
+                                <connections>
+                                    <action selector="addFontTrait:" target="DYF-2W-D6X" id="rnr-um-6IR"/>
+                                </connections>
+                            </menuItem>
+                            <menuItem title="Italic" tag="1" keyEquivalent="i" id="hTH-Wc-Muv">
+                                <connections>
+                                    <action selector="addFontTrait:" target="DYF-2W-D6X" id="WMQ-ZR-MDF"/>
+                                </connections>
+                            </menuItem>
+                            <menuItem title="Underline" keyEquivalent="u" id="sjH-lh-MIL">
+                                <connections>
+                                    <action selector="underline:" target="Oky-zY-oP4" id="rp6-OS-rsO"/>
+                                </connections>
+                            </menuItem>
+                            <menuItem isSeparatorItem="YES" id="2YV-a0-8UE"/>
+                            <menuItem title="Bigger" tag="3" keyEquivalent="+" id="w3A-dC-KU3">
+                                <connections>
+                                    <action selector="modifyFont:" target="DYF-2W-D6X" id="P6n-Rd-dBk"/>
+                                </connections>
+                            </menuItem>
+                            <menuItem title="Smaller" tag="4" keyEquivalent="-" id="s0D-3g-nxD">
+                                <connections>
+                                    <action selector="modifyFont:" target="DYF-2W-D6X" id="NBj-G7-sF6"/>
+                                </connections>
+                            </menuItem>
+                            <menuItem isSeparatorItem="YES" id="kwB-5N-Wiu"/>
+                            <menuItem title="Kern" id="Bim-QI-BXB">
+                                <modifierMask key="keyEquivalentModifierMask"/>
+                                <menu key="submenu" title="Kern" id="QBm-B8-1R3">
+                                    <items>
+                                        <menuItem title="Use Default" id="DHq-j0-d7b">
+                                            <modifierMask key="keyEquivalentModifierMask"/>
+                                            <connections>
+                                                <action selector="useStandardKerning:" target="Oky-zY-oP4" id="DUP-ve-un2"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem title="Use None" id="YQY-Mn-V9R">
+                                            <modifierMask key="keyEquivalentModifierMask"/>
+                                            <connections>
+                                                <action selector="turnOffKerning:" target="Oky-zY-oP4" id="sPm-KJ-9hh"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem title="Tighten" id="bH3-3a-prh">
+                                            <modifierMask key="keyEquivalentModifierMask"/>
+                                            <connections>
+                                                <action selector="tightenKerning:" target="Oky-zY-oP4" id="d9Z-pX-siE"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem title="Loosen" id="xaT-Tv-1L2">
+                                            <modifierMask key="keyEquivalentModifierMask"/>
+                                            <connections>
+                                                <action selector="loosenKerning:" target="Oky-zY-oP4" id="ULJ-Fk-fDz"/>
+                                            </connections>
+                                        </menuItem>
+                                    </items>
+                                </menu>
+                            </menuItem>
+                            <menuItem title="Ligatures" id="Gk3-AG-oh3">
+                                <modifierMask key="keyEquivalentModifierMask"/>
+                                <menu key="submenu" title="Ligatures" id="hgS-od-Jhc">
+                                    <items>
+                                        <menuItem title="Use Default" id="mPH-aA-Bcv">
+                                            <modifierMask key="keyEquivalentModifierMask"/>
+                                            <connections>
+                                                <action selector="useStandardLigatures:" target="Oky-zY-oP4" id="LMw-cw-sli"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem title="Use None" id="62I-ik-fNA">
+                                            <modifierMask key="keyEquivalentModifierMask"/>
+                                            <connections>
+                                                <action selector="turnOffLigatures:" target="Oky-zY-oP4" id="Tj8-dd-gLM"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem title="Use All" id="0R0-Wb-VOj">
+                                            <modifierMask key="keyEquivalentModifierMask"/>
+                                            <connections>
+                                                <action selector="useAllLigatures:" target="Oky-zY-oP4" id="LMB-jg-yXv"/>
+                                            </connections>
+                                        </menuItem>
+                                    </items>
+                                </menu>
+                            </menuItem>
+                            <menuItem title="Baseline" id="WXz-cE-RVg">
+                                <modifierMask key="keyEquivalentModifierMask"/>
+                                <menu key="submenu" title="Baseline" id="KrJ-7x-G5X">
+                                    <items>
+                                        <menuItem title="Use Default" id="6Sd-DM-vFD">
+                                            <modifierMask key="keyEquivalentModifierMask"/>
+                                            <connections>
+                                                <action selector="unscript:" target="Oky-zY-oP4" id="LZa-4C-Lhf"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem title="Superscript" id="Xq5-qV-xMO">
+                                            <modifierMask key="keyEquivalentModifierMask"/>
+                                            <connections>
+                                                <action selector="superscript:" target="Oky-zY-oP4" id="VXC-oK-LUH"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem title="Subscript" id="7dT-tM-lhv">
+                                            <modifierMask key="keyEquivalentModifierMask"/>
+                                            <connections>
+                                                <action selector="subscript:" target="Oky-zY-oP4" id="8DT-le-Yxj"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem title="Raise" id="d7W-ZO-fkD">
+                                            <modifierMask key="keyEquivalentModifierMask"/>
+                                            <connections>
+                                                <action selector="raiseBaseline:" target="Oky-zY-oP4" id="4d6-19-c1u"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem title="Lower" id="VXd-Wv-Fa8">
+                                            <modifierMask key="keyEquivalentModifierMask"/>
+                                            <connections>
+                                                <action selector="lowerBaseline:" target="Oky-zY-oP4" id="sbs-Rs-7u0"/>
+                                            </connections>
+                                        </menuItem>
+                                    </items>
+                                </menu>
+                            </menuItem>
+                            <menuItem isSeparatorItem="YES" id="Ikr-ph-S2D"/>
+                            <menuItem title="Show Colors" keyEquivalent="C" id="9d2-ds-6Ey">
+                                <connections>
+                                    <action selector="orderFrontColorPanel:" target="Oky-zY-oP4" id="S5M-EW-mhf"/>
+                                </connections>
+                            </menuItem>
+                            <menuItem isSeparatorItem="YES" id="l5D-5b-O6I"/>
+                            <menuItem title="Copy Style" keyEquivalent="c" id="b8G-Q9-9FV">
+                                <modifierMask key="keyEquivalentModifierMask" option="YES" command="YES"/>
+                                <connections>
+                                    <action selector="copyFont:" target="Oky-zY-oP4" id="Yqs-dM-Tc9"/>
+                                </connections>
+                            </menuItem>
+                            <menuItem title="Paste Style" keyEquivalent="v" id="6bf-tY-ks8">
+                                <modifierMask key="keyEquivalentModifierMask" option="YES" command="YES"/>
+                                <connections>
+                                    <action selector="pasteFont:" target="Oky-zY-oP4" id="plj-ZZ-UM7"/>
+                                </connections>
+                            </menuItem>
+                        </items>
+                    </menu>
+                </menuItem>
+                <customObject id="DYF-2W-D6X" customClass="NSFontManager"/>
             </objects>
             <point key="canvasLocation" x="75" y="250"/>
         </scene>
@@ -912,9 +1075,7 @@
         </scene>
     </scenes>
     <resources>
-        <image name="NSActionTemplate" width="14" height="14"/>
         <image name="NSAddTemplate" width="11" height="11"/>
         <image name="NSRemoveTemplate" width="11" height="11"/>
-        <image name="NSTouchBarVolumeUpTemplate" width="23" height="30"/>
     </resources>
 </document>

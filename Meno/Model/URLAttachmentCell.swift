@@ -15,33 +15,35 @@ let ICON_SIZE: CGFloat = 16.0
 
 class URLAttachmentCell: NSTextAttachmentCell {
     
+    var originPath: String!
     var textSize: NSSize {
         let text = self.stringValue.lastPathComponent as NSString
         return text.size(withAttributes: nil)
     }
     
+    init(originPath: String) {
+        super.init()
+        
+        self.originPath = originPath
+    }
+    
+    required init(coder: NSCoder) {
+        super.init(coder: coder)
+    }
+    
     override var attachment: NSTextAttachment? {
         didSet {
-            if attachment?.contents != nil {
-                if let url = URL(dataRepresentation: attachment!.contents!, relativeTo: nil) {
-                    self.stringValue = url.path
-                    
-                    let ws = NSWorkspace.shared
-                    
-                    self.image = ws.icon(forFile: url.path)
-                }
-            } else if attachment?.fileWrapper != nil {
-                if let data = attachment!.fileWrapper!.regularFileContents,
-                   let url = URL(dataRepresentation: data, relativeTo: nil) {
-                    self.stringValue = url.path
-                    
-                    let ws = NSWorkspace.shared
-                    
-                    self.image = ws.icon(forFile: url.path)
+            if let name = attachment?.fileWrapper?.filename {
+                let ws = NSWorkspace.shared
+                
+                self.stringValue = name.deletingPathExtension.deletingPathExtension
+                if let fullpath = self.stringValue.stringOfFullPath(basePath: self.originPath) {
+                    self.image = ws.icon(forFile: fullpath)
                 }
             }
         }
     }
+
     
     override func draw(withFrame cellFrame: NSRect, in controlView: NSView?) {
         commonDraw(withFrame: cellFrame, in: controlView)
@@ -100,6 +102,10 @@ extension String {
         return (self as NSString)
     }
     
+//    public func path(withComponents components: [String]) -> String {
+//        return NSString.path(withComponents: components) as String
+//    }
+    
     public func substring(from index: Int) -> String {
         return nsstring.substring(from: index)
     }
@@ -138,5 +144,46 @@ extension String {
     
     public func appendingPathExtension(_ str: String) -> String? {
         return nsstring.appendingPathExtension(str)
+    }
+    
+    public func stringOfFullPath(basePath: String) -> String? {
+        var basePathComponents = basePath.pathComponents
+        var relativePathComponents = nsstring.pathComponents
+        
+        if relativePathComponents.count == 0 {
+            return basePath
+        }
+        
+        while basePathComponents.count > 0 {
+            if relativePathComponents[0] == ".." {
+                basePathComponents.removeLast()
+                relativePathComponents.removeFirst()
+            } else {
+                break
+            }
+        }
+        
+        if basePathComponents.count == 0 { return nil }
+        
+        return NSString.path(withComponents: basePathComponents + relativePathComponents)
+    }
+    
+    public func stringOfRelativePath(basePath: String) -> String {
+        var basePathComponents = basePath.pathComponents
+        var relativePathComponents = nsstring.pathComponents
+        
+        while basePathComponents.count > 0 && relativePathComponents.count > 0 {
+            if basePathComponents[0] == relativePathComponents.first! {
+                basePathComponents.removeFirst()
+                relativePathComponents.removeFirst()
+            } else {
+                break
+            }
+        }
+        if basePathComponents.count == 0 {
+            return NSString.path(withComponents: relativePathComponents)
+        } else {
+            return NSString.path(withComponents: [String].init(repeating: "..", count: basePathComponents.count) + relativePathComponents)
+        }
     }
 }

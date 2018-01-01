@@ -128,6 +128,10 @@ class ItemsViewController: NSViewController, NSTableViewDataSource, NSTableViewD
         didSet()
     }
     func raiseSelectedItem() {
+        if self.arrayController.selectionIndex == 0 {
+            return
+        }
+        
         NSAnimationContext.runAnimationGroup({ (context) in
             context.allowsImplicitAnimation = true
             context.duration = 0.5

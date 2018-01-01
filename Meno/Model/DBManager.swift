@@ -11,16 +11,11 @@ import FMDB
 
 class DBManager: NSObject {
     var db: FMDatabase? = nil
-    private(set) var url: URL?
     private(set) var filePath: String?
-    private(set) var currentDirectory: String?
     
-    var originURL: URL? {
+    var originPath: String? {
         get {
-            if let directoryURL = self.url?.absoluteString.deletingLastPathComponent {
-                return URL(string: directoryURL)
-            }
-            return nil
+            return self.filePath?.deletingLastPathComponent
         }
     }
     
@@ -30,8 +25,7 @@ class DBManager: NSObject {
         let result = db!.open()
         
         if result {
-            self.url = url
-            self.currentDirectory = filePath?.deletingLastPathComponent
+            self.filePath = url.path
         }
         completed(result)
     }

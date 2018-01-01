@@ -13,6 +13,9 @@ class EditView: NSView {
     let titleHeight: CGFloat = 38.0
     let titleMargin: NSSize = NSMakeSize(8.0, 8.0)
     
+    let titleFontSize: CGFloat = 24.0
+    let mainFontSize: CGFloat = 13.0
+    
     var controller: EditViewController! {
         didSet {
             if let textView = self.textView {
@@ -64,7 +67,6 @@ class EditView: NSView {
         dateField.isBordered = false
         dateField.isEditable = false
         dateField.alignment = .center
-        dateField.stringValue = "2017年12月22日 (金)"
         self.addSubview(dateField)
         
         // タイトルフィールド
@@ -75,7 +77,7 @@ class EditView: NSView {
         titleField.isEditable = true
         titleField.isSelectable = true
         titleField.autoresizingMask = [.width, .minYMargin]
-        titleField.font = NSFont.systemFont(ofSize: 24, weight: .bold)
+        titleField.font = NSFont.systemFont(ofSize: self.titleFontSize, weight: .heavy)
         titleField.delegate = self
         self.addSubview(titleField)
         
@@ -86,6 +88,7 @@ class EditView: NSView {
         textView.isVerticallyResizable = true
         textView.isHorizontallyResizable = false
         textView.autoresizingMask = [.width, .minYMargin]
+        textView.font = NSFont.systemFont(ofSize: self.mainFontSize)
         textView.textContainer?.containerSize = NSMakeSize(frameRect.width, CGFloat.greatestFiniteMagnitude)
         textView.textContainer?.widthTracksTextView = true
         textView.textContainerInset = NSSize(width: 20.0, height: 10.0)
@@ -95,18 +98,19 @@ class EditView: NSView {
         
         // textViewのサイズ変更を監視し，それに合わせてサイズ変更
         NotificationCenter.default.addObserver(forName: NSView.frameDidChangeNotification, object: textView, queue: OperationQueue.main) { (notif) in
+            
             var newHeight: CGFloat = self.frame.height
+            var newY: CGFloat = 0.0
             
             if self.frame.height - self.titleHeight != self.textView.frame.height {
                 newHeight = self.textView.frame.height + self.headerHeight
             }
             
-            self.frame = NSMakeRect(self.frame.origin.x, self.frame.origin.y, self.frame.width, newHeight)
-            
-            // 読み込み後の場合はトップまでスクロール (SelectedRangeをフラグとして用いている)
-            if self.textView.selectedRange() == NSMakeRange(0, 0) {
-                self.scroll(NSMakePoint(0.0, self.frame.height))
+            if let scrollView = self.enclosingScrollView {
+                newY = scrollView.contentSize.height - newHeight
             }
+            
+            self.frame = NSMakeRect(self.frame.origin.x, newY, self.frame.width, newHeight)
         }
         // textViewの内容が変更されたらdelegateに通知
         NotificationCenter.default.addObserver(forName: NSTextView.didChangeNotification, object: textView, queue: OperationQueue.main) { (notif) in

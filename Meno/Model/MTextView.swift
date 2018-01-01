@@ -15,6 +15,11 @@ class MTextView: NSTextView, NSTextViewDelegate, NSTextStorageDelegate {
     var possibleActiveCell: URLAttachmentCell?
     var previewingURL: NSURL?
     var controller: EditViewController!
+    var originPath: String? {
+        get {
+            return self.controller.dbManager?.originPath
+        }
+    }
     
     override init(frame frameRect: NSRect) {
         super.init(frame: frameRect)
@@ -37,7 +42,7 @@ class MTextView: NSTextView, NSTextViewDelegate, NSTextStorageDelegate {
         self.textStorage?.delegate = self
     }
     
-    // このクラスでドラッグを処理すべきかどうか．そうでないときはスーパークラスに投げる
+    // このクラスでドラッグを処理すべきかどうか．
     func shouldHandleDrag(_ draggingInfo: NSDraggingInfo) -> Bool {
         let pboard = draggingInfo.draggingPasteboard()
 
@@ -74,15 +79,15 @@ class MTextView: NSTextView, NSTextViewDelegate, NSTextStorageDelegate {
             let storage = self.textStorage {
 
             for url in urls {
-                let relativeURL = URL(fileURLWithPath: url.path, relativeTo: self.controller.dbManager!.originURL!)
-                
-                if let path = relativeURL.path.removingPercentEncoding {
-                    let cell = URLAttachmentCell()
+                if let path = url.path.removingPercentEncoding {
                     
-                    let textAttachment = NSTextAttachment(fileWrapper: self.fileWrapper(with: path, data: url.dataRepresentation))
-                    cell.identifier = NSUserInterfaceItemIdentifier(path)
+                    let cell = URLAttachmentCell(originPath: self.controller.dbManager!.originPath!)
+                    
+                    let relativePath = path.stringOfRelativePath(basePath: self.originPath!)
+                        
+                    let textAttachment = NSTextAttachment(fileWrapper: self.fileWrapper(with: relativePath, data: Data()))
+                    
                     textAttachment.attachmentCell = cell
-
                     let cellstring = NSAttributedString(attachment: textAttachment)
                     storage.insert(cellstring, at: caretLocation)
                 }
@@ -111,12 +116,20 @@ class MTextView: NSTextView, NSTextViewDelegate, NSTextStorageDelegate {
 
     // 外にドラッグするときにちゃんとファイルURLをコピーしたい
     func textView(_ view: NSTextView, write cell: NSTextAttachmentCellProtocol, at charIndex: Int, to pboard: NSPasteboard, type: NSPasteboard.PasteboardType) -> Bool {
-        if type == .fileURL {
-            if let data = cell.attachment?.fileWrapper?.regularFileContents,
-               let url = URL(dataRepresentation: data, relativeTo: nil) {
-                pboard.writeObjects([url as NSURL])
-                
-                return true
+        if let urlcell = cell as? URLAttachmentCell {
+        
+            if type == .fileContents {
+                if let wrapper = urlcell.attachment?.fileWrapper {
+                    pboard.write(wrapper)
+                }
+            }
+            if type == .fileURL {
+                if let path = urlcell.stringValue.stringOfFullPath(basePath: self.originPath!) {
+                    let url = URL(fileURLWithPath: path)
+                    pboard.writeObjects([url as NSURL])
+                    
+                    return true
+                }
             }
         }
         return false
@@ -135,7 +148,7 @@ class MTextView: NSTextView, NSTextViewDelegate, NSTextStorageDelegate {
                             if filename.pathExtension == "url" &&
                                 filename.deletingPathExtension.pathExtension == "meno" {
 
-                                let cell = URLAttachmentCell()
+                                let cell = URLAttachmentCell(originPath: self.originPath!)
                                 attachment.attachmentCell = cell
                             }
                         }
@@ -151,8 +164,9 @@ class MTextView: NSTextView, NSTextViewDelegate, NSTextStorageDelegate {
             
             // Preview中ならPreviewの内容を切り替え，そうでなければメニューを表示
             if let qlPanel = self.QLPanel {
-                if let data = urlcell.attachment?.fileWrapper?.regularFileContents {
-                    self.previewingURL = NSURL(dataRepresentation: data, relativeTo: nil)
+                
+                if let fullpath = urlcell.stringValue.stringOfFullPath(basePath: self.originPath!) {
+                    self.previewingURL = NSURL(fileURLWithPath: fullpath)
                     qlPanel.reloadData()
                 }
             } else {
@@ -168,29 +182,26 @@ class MTextView: NSTextView, NSTextViewDelegate, NSTextStorageDelegate {
     }
     @objc func openFileAction(sender: Any) {
         if let urlcell = self.possibleActiveCell,
-            let data = urlcell.attachment?.fileWrapper?.regularFileContents {
+           let path = urlcell.stringValue.stringOfFullPath(basePath: self.originPath!) {
             
-            let url = URL(dataRepresentation: data, relativeTo: nil)
             let ws = NSWorkspace.shared
             
-            if let path = url?.path {
-                ws.openFile(path)
-            }
+            ws.openFile(path)
         }
     }
     @objc func finderAction(sender: Any) {
         if let cell = possibleActiveCell {
             let ws = NSWorkspace.shared
-            let path = cell.stringValue
+            let path = cell.stringValue.stringOfFullPath(basePath: self.originPath!)
             ws.selectFile(path, inFileViewerRootedAtPath: "")
         }
     }
     @objc func QLAction(sender: Any) {
         
         if let urlcell = self.possibleActiveCell,
-           let data = urlcell.attachment?.fileWrapper?.regularFileContents {
+           let path = urlcell.stringValue.stringOfFullPath(basePath: self.originPath!) {
             
-            self.previewingURL = NSURL(dataRepresentation: data, relativeTo: nil)
+            self.previewingURL = NSURL(fileURLWithPath: path)
             
             if let panel = QLPreviewPanel.shared() {
                 panel.makeKeyAndOrderFront(self)

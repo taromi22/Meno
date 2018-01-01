@@ -19,6 +19,7 @@
 		5A485F031FBBC8C100175169 /* EditViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A485F011FBBC8C100175169 /* EditViewController.swift */; };
 		5A485F081FBE735B00175169 /* DBManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A485F071FBE735B00175169 /* DBManager.swift */; };
 		5A485F0A1FBEF05C00175169 /* NoteProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A485F091FBEF05C00175169 /* NoteProfile.swift */; };
+		5A5A43A21FF9DBA400B42AD7 /* TextViewAttributeObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A5A43A11FF9DBA400B42AD7 /* TextViewAttributeObserver.swift */; };
 		5AA091831FEF733300FFD5C3 /* TitleField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5AA091821FEF733300FFD5C3 /* TitleField.swift */; };
 		5AA091851FEFF45F00FFD5C3 /* TitleFieldCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5AA091841FEFF45F00FFD5C3 /* TitleFieldCell.swift */; };
 		5AD6F6D11FDC45BF00E6427D /* EditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5AD6F6D01FDC45BF00E6427D /* EditView.swift */; };
@@ -42,6 +43,7 @@
 		5A485F011FBBC8C100175169 /* EditViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditViewController.swift; sourceTree = "<group>"; };
 		5A485F071FBE735B00175169 /* DBManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DBManager.swift; sourceTree = "<group>"; };
 		5A485F091FBEF05C00175169 /* NoteProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoteProfile.swift; sourceTree = "<group>"; };
+		5A5A43A11FF9DBA400B42AD7 /* TextViewAttributeObserver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextViewAttributeObserver.swift; sourceTree = "<group>"; };
 		5AA091821FEF733300FFD5C3 /* TitleField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TitleField.swift; sourceTree = "<group>"; };
 		5AA091841FEFF45F00FFD5C3 /* TitleFieldCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TitleFieldCell.swift; sourceTree = "<group>"; };
 		5AD6F6D01FDC45BF00E6427D /* EditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditView.swift; sourceTree = "<group>"; };
@@ -122,6 +124,7 @@
 				5A485F071FBE735B00175169 /* DBManager.swift */,
 				5A485F091FBEF05C00175169 /* NoteProfile.swift */,
 				5A1F34881FC3019700E2DBDC /* MTextView.swift */,
+				5A5A43A11FF9DBA400B42AD7 /* TextViewAttributeObserver.swift */,
 				5A13C8061FC942F700F333A7 /* URLAttachmentCell.swift */,
 				5AA091821FEF733300FFD5C3 /* TitleField.swift */,
 				5AA091841FEFF45F00FFD5C3 /* TitleFieldCell.swift */,
@@ -293,6 +296,7 @@
 				5A485F031FBBC8C100175169 /* EditViewController.swift in Sources */,
 				5A13C8071FC942F700F333A7 /* URLAttachmentCell.swift in Sources */,
 				5A485F0A1FBEF05C00175169 /* NoteProfile.swift in Sources */,
+				5A5A43A21FF9DBA400B42AD7 /* TextViewAttributeObserver.swift in Sources */,
 				5A485EFA1FBB226600175169 /* AppDef.swift in Sources */,
 				5A485EFC1FBB22B700175169 /* WindowController.swift in Sources */,
 				5A485EFE1FBB286800175169 /* SplitViewController.swift in Sources */,

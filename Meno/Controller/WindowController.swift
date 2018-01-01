@@ -10,7 +10,11 @@ import Cocoa
 import FMDB
 
 class WindowController: NSWindowController, ItemsViewControllerDelegate {
-    var dbManager: DBManager?
+    @IBOutlet weak var boldButton: NSButton!
+    @IBOutlet weak var italicButton: NSButton!
+    
+    var dbManager: DBManager!
+    var attributeObserver: TextViewAttributeObserver!
     
     var splitViewController: SplitViewController! {
         return self.contentViewController as? SplitViewController
@@ -38,6 +42,11 @@ class WindowController: NSWindowController, ItemsViewControllerDelegate {
         
         titlesViewController.delegate = self
         editViewController.delegate = self
+        
+        attributeObserver = TextViewAttributeObserver()
+        attributeObserver.boldButton = self.boldButton
+        attributeObserver.italicButton = self.italicButton
+        attributeObserver.targetTextView = self.editViewController.contentView.textView
     }
     
     override func showWindow(_ sender: Any?) {

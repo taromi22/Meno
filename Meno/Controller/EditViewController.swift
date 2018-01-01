@@ -14,6 +14,7 @@ class EditViewController: NSViewController {
     var contentView: EditView!
     var isModified: Bool = false
     var delegate: EditViewControllerDelegate?
+    var fontManager: NSFontManager!
     
     var textView: MTextView! {
         get {
@@ -66,20 +67,24 @@ class EditViewController: NSViewController {
             dbManager!.saveNote(id: oldProfile.id, content: self.textStorage!)
         }
         self.isModified = false
-        // 表示
-        let atrstring = dbManager!.getNote(id: newProfile.id)
-        self.textStorage!.setAttributedString(atrstring ?? NSAttributedString())
-        self.titleField.stringValue = newProfile.title
-        self.showingProfile = newProfile
+        
+        // 日時を更新
         self.dateField.stringValue = newProfile.updatedDate.description(with: Locale.current)
-        // カーソルをトップへ　（一番上へスクロールさせるためのフラグとして用いている)
-        self.textView.setSelectedRange(NSMakeRange(0, 0))
+        // 表示
+        if self.showingProfile !== newProfile {
+            let atrstring = dbManager!.getNote(id: newProfile.id)
+            self.textStorage!.setAttributedString(atrstring ?? NSAttributedString())
+            self.titleField.stringValue = newProfile.title
+            self.showingProfile = newProfile
+        }
     }
     
     func didChange() {
         self.isModified = true
+        // 日時を更新
         self.showingProfile?.updatedDate = Date()
         self.dateField.stringValue = self.showingProfile?.updatedDate.description(with: Locale.current) ?? ""
+        //
         self.delegate?.editViewControllerContentChanged()
     }
 }
