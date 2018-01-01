@@ -12,6 +12,7 @@ import FMDB
 class WindowController: NSWindowController, ItemsViewControllerDelegate {
     @IBOutlet weak var boldButton: NSButton!
     @IBOutlet weak var italicButton: NSButton!
+    @IBOutlet weak var underlineButton: NSButton!
     
     var dbManager: DBManager!
     var attributeObserver: TextViewAttributeObserver!
@@ -46,6 +47,7 @@ class WindowController: NSWindowController, ItemsViewControllerDelegate {
         attributeObserver = TextViewAttributeObserver()
         attributeObserver.boldButton = self.boldButton
         attributeObserver.italicButton = self.italicButton
+        attributeObserver.underlineButton = self.underlineButton
         attributeObserver.targetTextView = self.editViewController.contentView.textView
     }
     
@@ -104,12 +106,6 @@ class WindowController: NSWindowController, ItemsViewControllerDelegate {
                 self.titlesViewController.removeSelectedItem()
             }
         }
-    }
-    @IBAction func getAttributesAction(_ sender: Any) {
-        var range = NSRange(location: 0, length: self.editViewController.textStorage!.length)
-        let dic = self.editViewController.textStorage?.attributes(at: self.editViewController.textView.selectedRange().location, effectiveRange: &range)
-        
-        print(dic)
     }
 }
 

@@ -775,6 +775,35 @@
                                         </connections>
                                     </button>
                                 </toolbarItem>
+                                <toolbarItem implicitItemIdentifier="257861F8-ACE0-4319-8E3B-6ABB25BB649D" label="Underline" paletteLabel="Underline" tag="1" id="UOm-rw-plp">
+                                    <nil key="toolTip"/>
+                                    <size key="minSize" width="36" height="25"/>
+                                    <size key="maxSize" width="36" height="28"/>
+                                    <button key="view" verticalHuggingPriority="750" tag="1" id="cPA-ML-IPq">
+                                        <rect key="frame" x="11" y="14" width="36" height="28"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                        <buttonCell key="cell" type="roundTextured" title="U" bezelStyle="texturedRounded" alignment="center" lineBreakMode="truncatingTail" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="VQX-hV-N8n">
+                                            <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES" changeBackground="YES" changeGray="YES"/>
+                                            <font key="font" size="13" name="TimesNewRomanPSMT"/>
+                                        </buttonCell>
+                                        <connections>
+                                            <action selector="addFontTrait:" target="DYF-2W-D6X" id="ruq-vG-J0F"/>
+                                        </connections>
+                                    </button>
+                                </toolbarItem>
+                                <toolbarItem implicitItemIdentifier="16257D79-4787-4A7B-AECA-F0122D020531" label="Paragraph" paletteLabel="Paragraph" id="jSf-fA-feH">
+                                    <nil key="toolTip"/>
+                                    <size key="minSize" width="80" height="25"/>
+                                    <size key="maxSize" width="80" height="25"/>
+                                    <button key="view" verticalHuggingPriority="750" id="6c3-Bw-qIC">
+                                        <rect key="frame" x="0.0" y="14" width="80" height="25"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                        <buttonCell key="cell" type="roundTextured" title="Paragraph" bezelStyle="texturedRounded" alignment="center" lineBreakMode="truncatingTail" state="on" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="fao-ph-XUe">
+                                            <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                            <font key="font" metaFont="system"/>
+                                        </buttonCell>
+                                    </button>
+                                </toolbarItem>
                             </allowedToolbarItems>
                             <defaultToolbarItems>
                                 <toolbarItem reference="Ide-y6-dsD"/>
@@ -782,6 +811,7 @@
                                 <toolbarItem reference="An6-bJ-PhV"/>
                                 <toolbarItem reference="dGL-wz-vlr"/>
                                 <toolbarItem reference="jUh-9C-D7J"/>
+                                <toolbarItem reference="UOm-rw-plp"/>
                                 <toolbarItem reference="An6-bJ-PhV"/>
                                 <toolbarItem reference="nHc-ue-1Dp"/>
                             </defaultToolbarItems>
@@ -790,6 +820,7 @@
                     <connections>
                         <outlet property="boldButton" destination="fZD-gL-BFu" id="jRR-gT-EB3"/>
                         <outlet property="italicButton" destination="h9E-o6-3po" id="Byi-fP-pdd"/>
+                        <outlet property="underlineButton" destination="cPA-ML-IPq" id="vG3-qU-R6M"/>
                         <segue destination="bQh-Dg-PJo" kind="relationship" relationship="window.shadowedContentViewController" id="BoY-Xh-gL4"/>
                     </connections>
                 </windowController>
@@ -987,7 +1018,8 @@
                                     <autoresizingMask key="autoresizingMask"/>
                                     <size key="intercellSpacing" width="3" height="2"/>
                                     <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
-                                    <color key="gridColor" name="gridColor" catalog="System" colorSpace="catalog"/>
+                                    <tableViewGridLines key="gridStyleMask" horizontal="YES"/>
+                                    <color key="gridColor" red="0.9139005829015544" green="0.9139005829015544" blue="0.9139005829015544" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                     <tableColumns>
                                         <tableColumn identifier="Title" width="447" minWidth="10" maxWidth="3.4028234663852886e+38" id="RWg-aF-Z7h">
                                             <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border" alignment="left">

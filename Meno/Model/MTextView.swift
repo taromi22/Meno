@@ -208,6 +208,7 @@ class MTextView: NSTextView, NSTextViewDelegate, NSTextStorageDelegate {
                 panel.dataSource = self
                 panel.delegate = self
                 
+                
                 self.QLPanel = panel
             }
         }
