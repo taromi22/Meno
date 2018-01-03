@@ -16,6 +16,7 @@ class WindowController: NSWindowController, ItemsViewControllerDelegate {
     
     var dbManager: DBManager!
     var attributeObserver: TextViewAttributeObserver!
+    var paragraphMenu: ParagraphMenu!
     
     var splitViewController: SplitViewController! {
         return self.contentViewController as? SplitViewController
@@ -44,11 +45,14 @@ class WindowController: NSWindowController, ItemsViewControllerDelegate {
         titlesViewController.delegate = self
         editViewController.delegate = self
         
+        self.paragraphMenu = ParagraphMenu(title: "段落")
+        
         attributeObserver = TextViewAttributeObserver()
         attributeObserver.boldButton = self.boldButton
         attributeObserver.italicButton = self.italicButton
         attributeObserver.underlineButton = self.underlineButton
         attributeObserver.targetTextView = self.editViewController.contentView.textView
+        attributeObserver.paragraphMenu = self.paragraphMenu
     }
     
     override func showWindow(_ sender: Any?) {
@@ -105,6 +109,13 @@ class WindowController: NSWindowController, ItemsViewControllerDelegate {
             if dbManager!.removeItem(id: profile.id) {
                 self.titlesViewController.removeSelectedItem()
             }
+        }
+    }
+    @IBAction func openParagraphMenuAction(_ sender: Any) {
+        if let button = sender as? NSButton {
+            let point = NSMakePoint(button.frame.origin.x, button.frame.origin.y + button.frame.height)
+            
+            self.paragraphMenu.popUp(positioning: nil, at: point, in: button)
         }
     }
 }

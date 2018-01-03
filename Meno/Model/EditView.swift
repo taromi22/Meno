@@ -35,25 +35,22 @@ class EditView: NSView {
     var textView: MTextView!
     var minSize: NSSize = NSMakeSize(0, 0) {
         didSet {
-            let minWidth = oldValue.width
-            let minHeight = oldValue.height
-            
             var newWidth: CGFloat = self.frame.width
             var newHeight: CGFloat = self.frame.height
             
             // 現在のサイズがminSizeを下回っていたら引き伸ばす
-            if self.frame.width < minWidth {
-                newWidth = minWidth
+            if self.frame.width < self.minSize.width {
+                newWidth = self.minSize.width
             }
-            if self.frame.height < minHeight {
-                newHeight = minHeight
+            if self.frame.height < self.minSize.width {
+                newHeight = self.minSize.height
             }
-            self.frame = NSMakeRect(0.0, 0.0, newWidth, newHeight)
+            self.frame.size = NSMakeSize(newWidth, newHeight)
             
             // textViewも引き伸ばす
-            textView.minSize = NSMakeSize(0.0, minHeight - self.headerHeight)
+            textView.minSize = NSMakeSize(0.0, self.minSize.height - self.headerHeight)
             
-            textView.frame = NSMakeRect(0.0, 0.0, self.frame.width, self.frame.height - self.headerHeight)
+            textView.frame = NSMakeRect(0.0, 0.0, max(textView.frame.width, self.minSize.width), max(textView.frame.height, self.minSize.height))
         }
     }
     
@@ -99,18 +96,14 @@ class EditView: NSView {
         // textViewのサイズ変更を監視し，それに合わせてサイズ変更
         NotificationCenter.default.addObserver(forName: NSView.frameDidChangeNotification, object: textView, queue: OperationQueue.main) { (notif) in
             
-            var newHeight: CGFloat = self.frame.height
-            var newY: CGFloat = 0.0
+            let newHeight: CGFloat = max(self.textView.frame.height + self.headerHeight, self.minSize.height)
+            let dHeight: CGFloat = newHeight - self.frame.height
             
-            if self.frame.height - self.titleHeight != self.textView.frame.height {
-                newHeight = self.textView.frame.height + self.headerHeight
+            if self.frame.height != newHeight {
+                self.frame = NSMakeRect(self.frame.origin.x, self.frame.origin.y - dHeight, self.frame.width, newHeight)
             }
-            
-            if let scrollView = self.enclosingScrollView {
-                newY = scrollView.contentSize.height - newHeight
-            }
-            
-            self.frame = NSMakeRect(self.frame.origin.x, newY, self.frame.width, newHeight)
+    
+            self.textView.frame.origin = NSMakePoint(0, 0)
         }
         // textViewの内容が変更されたらdelegateに通知
         NotificationCenter.default.addObserver(forName: NSTextView.didChangeNotification, object: textView, queue: OperationQueue.main) { (notif) in
@@ -130,9 +123,6 @@ class EditView: NSView {
         let dHeight = self.superview!.frame.height - oldSize.height
         
         self.minSize = NSMakeSize(self.minSize.width + dWidth, self.minSize.height + dHeight)
-        
-        // あとでminSize変えてるから必要？
-        self.frame.size = NSMakeSize(self.minSize.width, self.frame.height)
     }
 }
 

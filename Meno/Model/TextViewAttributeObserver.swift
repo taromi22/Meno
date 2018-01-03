@@ -9,6 +9,7 @@
 import Cocoa
 
 class TextViewAttributeObserver: NSObject {
+    
     var targetTextView: NSTextView? {
         didSet {
             if let textView = targetTextView,
@@ -95,17 +96,24 @@ class TextViewAttributeObserver: NSObject {
     }
     var boldButton: NSButton? {
         didSet {
-            boldButton?.target = self
+            boldButton?.target = NSFontManager.shared
         }
     }
     var italicButton: NSButton? {
         didSet {
-            italicButton?.target = self
+            italicButton?.target = NSFontManager.shared
         }
     }
     var underlineButton: NSButton? {
         didSet {
-            underlineButton?.target = self
+            underlineButton?.target = NSFontManager.shared
+        }
+    }
+    var paragraphMenu: ParagraphMenu? {
+        didSet {
+            if let menu = paragraphMenu {
+                menu.paragraphMenuDelegate = self
+            }
         }
     }
     
@@ -146,6 +154,10 @@ class TextViewAttributeObserver: NSObject {
             }
         }
     }
+    var paragraphStyle: ParagraphStyle = ParagraphStyle.text {
+        didSet {
+        }
+    }
     
     @objc func addUnderline() {
         if let textView = self.targetTextView,
@@ -174,4 +186,44 @@ class TextViewAttributeObserver: NSObject {
             }
         }
     }
+}
+
+extension TextViewAttributeObserver: ParagraphMenuDelegate {
+    func paragraphMenuItemSelected() {
+        self.paragraphStyle = self.paragraphMenu!.paragraphStyle
+        if let textView = self.targetTextView,
+            let storage = textView.textStorage {
+        
+            let fontManager = NSFontManager.shared
+            let selectedRange = textView.selectedRange()
+            let range = (self.targetTextView!.string as NSString).paragraphRange(for: selectedRange)
+        
+            switch self.paragraphStyle {
+            case .caption:
+                let paragraph = NSParagraphStyle.default.mutableCopy() as! NSMutableParagraphStyle
+                var font = NSFont.systemFont(ofSize: 24.0)
+                font = fontManager.convert(font, toHaveTrait: [.boldFontMask])
+                
+                storage.addAttribute(.paragraphStyle, value: paragraph, range: range)
+                storage.addAttribute(.font, value: font, range: range)
+            
+            case .text:
+                let paragraph = NSParagraphStyle.default.mutableCopy() as! NSMutableParagraphStyle
+                var font = NSFont.systemFont(ofSize: 13.0)
+                
+                storage.addAttribute(.paragraphStyle, value: paragraph, range: range)
+                storage.addAttribute(.font, value: font, range: range)
+                
+            default:
+                break
+            }
+        }
+    }
+}
+
+enum ParagraphStyle {
+    case caption
+    case text
+    case list
+    case numberList
 }
