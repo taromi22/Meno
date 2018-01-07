@@ -10,10 +10,10 @@ import Cocoa
 
 class SplitViewController: NSSplitViewController {
     
-    var titlesViewController: ItemsViewController? {
+    var titlesViewController: ItemsViewController! {
         return splitViewItems[0].viewController as? ItemsViewController
     }
-    var editViewController: EditViewController? {
+    var editViewController: EditViewController! {
         return splitViewItems[1].viewController as? EditViewController
     }
 
@@ -21,6 +21,9 @@ class SplitViewController: NSSplitViewController {
         super.viewDidLoad()
         
         self.splitView.setPosition(CGFloat(300), ofDividerAt: 0)
+        
+        self.titlesViewController.editViewController = self.editViewController
+        self.editViewController.itemsViewController = self.titlesViewController
     }
     
     

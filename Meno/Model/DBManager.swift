@@ -51,7 +51,7 @@ class DBManager: NSObject {
     }
     
     func getProfile(id: Int32) -> NoteProfile? {
-        let results = db?.executeQuery("SELECT ID, TITLE, STRING, DATE_UPDATE, DATE_CREATE, ORDER_NUMBER FROM ITEMS", withParameterDictionary: nil)
+        let results = db?.executeQuery("SELECT ID, TITLE, STRING, DATE_UPDATE, DATE_CREATE, ORDER_NUMBER FROM ITEMS WHERE ID=?", withArgumentsIn: [id])
         
         if let results = results {
             results.next()

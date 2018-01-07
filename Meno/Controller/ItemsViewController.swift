@@ -14,8 +14,10 @@ class ItemsViewController: NSViewController, NSTableViewDataSource, NSTableViewD
     
     weak var delegate: ItemsViewControllerDelegate?
     
+    var editViewController: EditViewController!
     var preSelectedProfile: NoteProfile? = nil
     @objc var items = [NoteProfile]()
+    
     
     var maxOrder: Int32? {
         get {
@@ -30,6 +32,9 @@ class ItemsViewController: NSViewController, NSTableViewDataSource, NSTableViewD
         super.viewDidLoad()
         
         tableView.delegate = self
+        tableView.dataSource = self
+        tableView.registerForDraggedTypes([NoteProfile.pasteboardTypeNoteProfile])
+        tableView.setDraggingSourceOperationMask([.link], forLocal: true)
         
         let sortDescriptor = NSSortDescriptor(key: "self.updatedDate", ascending: false)
         arrayController.sortDescriptors = [sortDescriptor]
@@ -46,7 +51,24 @@ class ItemsViewController: NSViewController, NSTableViewDataSource, NSTableViewD
     }
     
     func tableView(_ tableView: NSTableView, writeRowsWith rowIndexes: IndexSet, to pboard: NSPasteboard) -> Bool {
+        let list = self.arrayController.arrangedObjects as! [NoteProfile]
+        var selected = [NoteProfile]()
+        
+        for i in rowIndexes {
+            selected.append(list[i])
+        }
+        pboard.clearContents()
+        pboard.writeObjects(selected)
+        
         return true
+    }
+    
+    func tableView(_ tableView: NSTableView, validateDrop info: NSDraggingInfo, proposedRow row: Int, proposedDropOperation dropOperation: NSTableView.DropOperation) -> NSDragOperation {
+        return .link
+    }
+    
+    func tableView(_ tableView: NSTableView, acceptDrop info: NSDraggingInfo, row: Int, dropOperation: NSTableView.DropOperation) -> Bool {
+        return false
     }
     
     func tableView(_ tableView: NSTableView, selectionIndexesForProposedSelection proposedSelectionIndexes: IndexSet) -> IndexSet {
@@ -54,15 +76,22 @@ class ItemsViewController: NSViewController, NSTableViewDataSource, NSTableViewD
         var decidedIndexes = proposedSelectionIndexes
         
         if proposedSelectionIndexes.count == 0 {
-            decidedIndexes = IndexSet.init(integer: tableView.selectedRow)
+            decidedIndexes = IndexSet(integer: tableView.selectedRow)
         }
         
-        // 以下の実装は間違い．１つ前のものを参照している
+        // 以下は間違い．１つ前のものを参照している
         let newProfile = self.selectedProfile
         delegate?.itemsViewControllerSelectionChanging(newProfile: newProfile, oldProfile: &self.preSelectedProfile)
         
         return decidedIndexes
     }
+//
+//    func tableView(_ tableView: NSTableView, pasteboardWriterForRow row: Int) -> NSPasteboardWriting? {
+//        let list = self.arrayController.arrangedObjects as! [NoteProfile]
+//
+//        return list[row]
+//    }
+
     
     func tableViewSelectionDidChange(_ notification: Notification) {
         let newProfile = selectedProfile
@@ -141,6 +170,18 @@ class ItemsViewController: NSViewController, NSTableViewDataSource, NSTableViewD
             self.tableView.scrollRowToVisible(0)
         }) {
             self.arrayController.rearrangeObjects()
+        }
+    }
+    
+    /// 指定したidのノートを選択する．
+    func select(id: Int32) {
+        let items = arrayController.arrangedObjects as! [NoteProfile]
+        var count = 0
+        for profile in items {
+            if profile.id == id {
+                self.tableView.selectRowIndexes(IndexSet(integer: count), byExtendingSelection: false)
+            }
+            count += 1
         }
     }
 }

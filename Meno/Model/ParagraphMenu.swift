@@ -34,24 +34,50 @@ class ParagraphMenu: NSMenu {
     func commonInit() {
         let fontManager = NSFontManager.shared
         
+        self.minimumWidth = 200
+        
         captionMenuItem = NSMenuItem(title: "見出し", action: #selector(self.menuAction(_:)), keyEquivalent: "")
         captionMenuItem.target = self
         captionMenuItem.state = .off
-        let label = NSTextField(labelWithString: "見出し")
-        var font = NSFont.systemFont(ofSize: 24)
-        font = fontManager.convert(font, toHaveTrait: [.boldFontMask])
-        label.font = font
-        captionMenuItem.view = label
-        label.frame = NSMakeRect(label.frame.origin.x, label.frame.origin.y, 150, 20)
+        captionMenuItem.image = NSImage(size: NSMakeSize(1,30))
+        let captionStr = NSMutableAttributedString(string: "見出し")
+        var captionFont = NSFont.systemFont(ofSize: 20)
+        captionFont = fontManager.convert(captionFont, toHaveTrait: [.boldFontMask])
+        captionStr.addAttribute(.font, value: captionFont, range: NSMakeRange(0, captionStr.length))
+        captionMenuItem.attributedTitle = captionStr
+        
         textMenuItem = NSMenuItem(title: "本文", action: #selector(self.menuAction(_:)), keyEquivalent: "")
         textMenuItem.target = self
         textMenuItem.state = .off
+        textMenuItem.image = NSImage(size: NSMakeSize(1,25))
+        let textStr = NSMutableAttributedString(string: "本文")
+        let textFont = NSFont.systemFont(ofSize: 13)
+        textStr.addAttribute(.font, value: textFont, range: NSMakeRange(0, textStr.length))
+        textMenuItem.attributedTitle = textStr
+        
         listMenuItem = NSMenuItem(title: "箇条書き", action: #selector(self.menuAction(_:)), keyEquivalent: "")
         listMenuItem.target = self
         listMenuItem.state = .off
+        listMenuItem.image = NSImage(size: NSMakeSize(1,25))
+        let listFont = NSFont.systemFont(ofSize: 13)
+        let list = NSTextList(markerFormat: NSTextList.MarkerFormat(" {disc} "), options: 0)
+        let paragraph = NSParagraphStyle.default.mutableCopy() as! NSMutableParagraphStyle
+        paragraph.textLists.append(list)
+        let listAttributes = [NSAttributedStringKey.paragraphStyle: paragraph, NSAttributedStringKey.font: listFont]
+        let listStr = NSMutableAttributedString(string: NSString(format: "%@箇条書き", list.marker(forItemNumber: 1)) as String, attributes: listAttributes)
+        listMenuItem.attributedTitle = listStr
+        
         numberListMenuItem = NSMenuItem(title: "番号付き箇条書き", action: #selector(self.menuAction(_:)), keyEquivalent: "")
         numberListMenuItem.target = self
         numberListMenuItem.state = .off
+        numberListMenuItem.image = NSImage(size: NSMakeSize(1,25))
+        let numberFont = NSFont.systemFont(ofSize: 13)
+        let numberList = NSTextList(markerFormat: NSTextList.MarkerFormat(" {decimal}. "), options: 1)
+        let numberParagraph = NSParagraphStyle.default.mutableCopy() as! NSMutableParagraphStyle
+        numberParagraph.textLists.append(numberList)
+        let numberAttributes = [NSAttributedStringKey.paragraphStyle: paragraph, NSAttributedStringKey.font: numberFont]
+        let numberStr = NSMutableAttributedString(string: NSString(format: "%@箇条書き", numberList.marker(forItemNumber: 1)) as String, attributes: numberAttributes)
+        numberListMenuItem.attributedTitle = numberStr
         
         self.addItem(captionMenuItem)
         self.addItem(textMenuItem)

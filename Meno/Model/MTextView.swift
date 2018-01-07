@@ -12,7 +12,7 @@ import Quartz
 class MTextView: NSTextView, NSTextViewDelegate, NSTextStorageDelegate {
     var QLPanel: QLPreviewPanel?
     // 現在メニューを表示している可能性のあるCell (メニューを表示するときに対象のCellをこの変数に入れる)
-    var possibleActiveCell: URLAttachmentCell?
+    var possibleActiveURLCell: URLAttachmentCell?
     var previewingURL: NSURL?
     var controller: EditViewController!
     var originPath: String? {
@@ -37,7 +37,7 @@ class MTextView: NSTextView, NSTextViewDelegate, NSTextStorageDelegate {
     }
     
     func commonInit() {
-        self.registerForDraggedTypes([.fileURL])
+        self.registerForDraggedTypes([.fileURL, NoteProfile.pasteboardTypeNoteProfile])
         self.delegate = self
         self.textStorage?.delegate = self
     }
@@ -47,6 +47,9 @@ class MTextView: NSTextView, NSTextViewDelegate, NSTextStorageDelegate {
         let pboard = draggingInfo.draggingPasteboard()
 
         if pboard.availableType(from: [.fileURL]) == NSPasteboard.PasteboardType.fileURL {
+            return true
+        }
+        else if pboard.availableType(from: [NoteProfile.pasteboardTypeNoteProfile]) == NoteProfile.pasteboardTypeNoteProfile {
             return true
         }
         return false
@@ -63,8 +66,11 @@ class MTextView: NSTextView, NSTextViewDelegate, NSTextStorageDelegate {
             return super.prepareForDragOperation(sender)
         }
     }
-
-    // 今の所絶対URLを使っている　ゆくゆくは相対パスにしたい（相対URLというのがある？）
+    
+    override func draggingUpdated(_ sender: NSDraggingInfo) -> NSDragOperation {
+        return shouldHandleDrag(sender) ? [.link] : super.draggingUpdated(sender)
+    }
+    
     override func performDragOperation(_ sender: NSDraggingInfo) -> Bool {
         let pboard = sender.draggingPasteboard()
 
@@ -75,33 +81,64 @@ class MTextView: NSTextView, NSTextViewDelegate, NSTextStorageDelegate {
         let dropPoint = self.convert(sender.draggingLocation(), from: nil)
         let caretLocation = self.characterIndexForInsertion(at: dropPoint)
         
-        if let urls = pboard.readObjects(forClasses: [NSURL.self], options: nil) as? [URL],
-            let storage = self.textStorage {
-
-            for url in urls {
-                if let path = url.path.removingPercentEncoding {
-                    
-                    let cell = URLAttachmentCell(originPath: self.controller.dbManager!.originPath!)
-                    
-                    let relativePath = path.stringOfRelativePath(basePath: self.originPath!)
+        if pboard.availableType(from: [.fileURL]) == NSPasteboard.PasteboardType.fileURL {
+            if let urls = pboard.readObjects(forClasses: [NSURL.self], options: nil) as? [URL],
+                let storage = self.textStorage {
+                
+                for url in urls {
+                    if let path = url.path.removingPercentEncoding {
                         
-                    let textAttachment = NSTextAttachment(fileWrapper: self.fileWrapper(with: relativePath, data: Data()))
+                        let cell = URLAttachmentCell(originPath: self.controller.dbManager!.originPath!)
+                        
+                        let relativePath = path.stringOfRelativePath(basePath: self.originPath!)
+                        
+                        let textAttachment = NSTextAttachment(fileWrapper: self.fileWrapperOfUrl(with: relativePath, data: Data()))
+                        
+                        textAttachment.attachmentCell = cell
+                        let cellstring = NSAttributedString(attachment: textAttachment)
+                        storage.insert(cellstring, at: caretLocation)
+                    }
+                }
+                
+                // 変更通知 (storageへの直接の追加は自動通知されない)
+                self.didChangeText()
+                
+                return true
+            }
+        }
+        else if pboard.availableType(from: [NoteProfile.pasteboardTypeNoteProfile]) == NoteProfile.pasteboardTypeNoteProfile {
+            if let profiles = pboard.readObjects(forClasses: [NoteProfile.self], options: nil) as? [NoteProfile],
+                let storage = self.textStorage {
+                
+                for profile in profiles {
+                    let cell = NoteAttachmentCell()
+                    let attachment = MTextAttachment(fileWrapper: self.fileWrapperOfProfile(with: String(profile.id), data: NSKeyedArchiver.archivedData(withRootObject: profile)))
                     
-                    textAttachment.attachmentCell = cell
-                    let cellstring = NSAttributedString(attachment: textAttachment)
+                    attachment.attachmentCell = cell
+                    
+                    let cellstring = NSAttributedString(attachment: attachment)
                     storage.insert(cellstring, at: caretLocation)
                 }
+                
+                // 変更通知 (storageへの直接の追加は自動通知されない)
+                self.didChangeText()
+                
+                return true
             }
-
-            // 変更通知 (storageへの直接の追加は自動通知されない)
-            self.didChangeText()
-            
-            return true
         }
         return false
     }
-    func fileWrapper(with identifier: String, data: Data) -> FileWrapper {
+    func fileWrapperOfUrl(with identifier: String, data: Data) -> FileWrapper {
         let wrapName = identifier.appendingPathExtension("meno")?.appendingPathExtension("url")
+        let wrapper = FileWrapper(regularFileWithContents: data)
+        
+        wrapper.filename = wrapName
+        wrapper.preferredFilename = wrapName
+        
+        return wrapper
+    }
+    func fileWrapperOfProfile(with identifier: String, data: Data) -> FileWrapper {
+        let wrapName = identifier.appendingPathExtension("meno")?.appendingPathExtension("profile")
         let wrapper = FileWrapper(regularFileWithContents: data)
         
         wrapper.filename = wrapName
@@ -114,7 +151,6 @@ class MTextView: NSTextView, NSTextViewDelegate, NSTextStorageDelegate {
         return [.fileContents]
     }
 
-    // 外にドラッグするときにちゃんとファイルURLをコピーしたい
     func textView(_ view: NSTextView, write cell: NSTextAttachmentCellProtocol, at charIndex: Int, to pboard: NSPasteboard, type: NSPasteboard.PasteboardType) -> Bool {
         if let urlcell = cell as? URLAttachmentCell {
         
@@ -134,33 +170,81 @@ class MTextView: NSTextView, NSTextViewDelegate, NSTextStorageDelegate {
         }
         return false
     }
+    override func keyDown(with event: NSEvent) {
+        super.keyDown(with: event)
+        
+        if event.characters == "\r" {
+            let list = NSTextList(markerFormat: NSTextList.MarkerFormat("{disc}"), options: 0)
+            if let paragraph = self.typingAttributes[.paragraphStyle] as? NSParagraphStyle {
+                print(paragraph.textLists.count)
+            }
+        }
+    }
     
     
     func textStorage(_ textStorage: NSTextStorage, willProcessEditing editedMask: NSTextStorageEditActions, range editedRange: NSRange, changeInLength delta: Int) {
-            let text = self.textStorage!
-            let length = text.length
-            var effectiveRange = NSMakeRange(0, 0)
+        
+        let text = self.textStorage!
+        let length = text.length
+        var effectiveRange = NSMakeRange(0, 0)
 
-            while NSMaxRange(effectiveRange) < length {
-                if let attachment = text.attribute(.attachment, at: NSMaxRange(effectiveRange), effectiveRange: &effectiveRange) as? NSTextAttachment {
-                    if !(attachment.attachmentCell is URLAttachmentCell) {
-                        if let filename = attachment.fileWrapper?.preferredFilename {
-                            if filename.pathExtension == "url" &&
-                                filename.deletingPathExtension.pathExtension == "meno" {
+        while NSMaxRange(effectiveRange) < length {
+            if let attachment = text.attribute(.attachment, at: NSMaxRange(effectiveRange), effectiveRange: &effectiveRange) as? NSTextAttachment {
+                if !(attachment.attachmentCell is URLAttachmentCell || attachment.attachmentCell is NoteAttachmentCell) {
+                    if let filename = attachment.fileWrapper?.preferredFilename {
+                        if filename.pathExtension == "url" &&
+                            filename.deletingPathExtension.pathExtension == "meno" {
 
-                                let cell = URLAttachmentCell(originPath: self.originPath!)
-                                attachment.attachmentCell = cell
-                            }
+                            let cell = URLAttachmentCell(originPath: self.originPath!)
+                            attachment.attachmentCell = cell
+                        } else if filename.pathExtension == "profile" &&
+                            filename.deletingPathExtension.pathExtension == "meno" {
+                            
+                            let cell = NoteAttachmentCell()
+                            attachment.attachmentCell = cell
                         }
                     }
                 }
             }
+        }
     }
     
+    /// TextView上のAttachmentのデータを更新．すでにカスタムCellに置き換えられている必要がある．
+    func updateAttachments() {
+        let text = self.textStorage!
+        let length = text.length
+        var effectiveRange = NSMakeRange(0, 0)
+        
+        while NSMaxRange(effectiveRange) < length {
+            if let attachment = text.attribute(.attachment, at: NSMaxRange(effectiveRange), effectiveRange: &effectiveRange) as? NSTextAttachment {
+                if let noteCell = attachment.attachmentCell as? NoteAttachmentCell {
+                    //
+                    // ノートへのリンクのProfileを更新
+                    if let data = attachment.fileWrapper?.regularFileContents,
+                       let oldProfile = NSKeyedUnarchiver.unarchiveObject(with: data) as? NoteProfile{
+                        
+                        let newProfile = self.controller.dbManager!.getProfile(id: oldProfile.id)
+                        
+                        if newProfile == nil {
+                            continue
+                        }
+                        
+                        attachment.fileWrapper = self.fileWrapperOfProfile(with: String(newProfile!.id), data: NSKeyedArchiver.archivedData(withRootObject: newProfile!))
+                        noteCell.update()
+                    }
+                } else if let urlCell = attachment.attachmentCell as? URLAttachmentCell {
+                    //  基準パスを更新
+                    urlCell.originPath = self.originPath
+                }
+            }
+        }
+    }
+    
+    /// URLAttachmentをクリックされたときにメニューを表示する
     func textView(_ textView: NSTextView, clickedOn cell: NSTextAttachmentCellProtocol, in cellFrame: NSRect, at charIndex: Int) {
         if let urlcell = cell as? URLAttachmentCell {
             
-            self.possibleActiveCell = urlcell
+            self.possibleActiveURLCell = urlcell
             
             // Preview中ならPreviewの内容を切り替え，そうでなければメニューを表示
             if let qlPanel = self.QLPanel {
@@ -175,13 +259,27 @@ class MTextView: NSTextView, NSTextViewDelegate, NSTextStorageDelegate {
                 menu.insertItem(withTitle: "開く", action: #selector(openFileAction(sender:)), keyEquivalent: "", at: 1)
                 menu.insertItem(withTitle: "Finderで表示", action: #selector(finderAction(sender:)), keyEquivalent: "", at: 2)
                 menu.insertItem(withTitle: "QuickLook", action: #selector(QLAction(sender:)), keyEquivalent: " ", at: 3)
+                menu.insertItem(withTitle: "削除", action: #selector(removeAction(sender:)), keyEquivalent: "", at: 4)
                 
                 menu.popUp(positioning: nil, at: NSMakePoint(cellFrame.origin.x, cellFrame.origin.y + cellFrame.height), in: self)
             }
         }
     }
+    
+    // NoteAttachmentをダブルクリックされたときにノートを移動する
+    func textView(_ textView: NSTextView, doubleClickedOn cell: NSTextAttachmentCellProtocol, in cellFrame: NSRect, at charIndex: Int) {
+        if let noteCell = cell as? NoteAttachmentCell,
+            let data = noteCell.attachment?.fileWrapper?.regularFileContents,
+            let profile = NSKeyedUnarchiver.unarchiveObject(with: data) as? NoteProfile {
+            
+            let id = profile.id
+            
+            self.controller.itemsViewController.select(id: id)
+        }
+    }
+    
     @objc func openFileAction(sender: Any) {
-        if let urlcell = self.possibleActiveCell,
+        if let urlcell = self.possibleActiveURLCell,
            let path = urlcell.stringValue.stringOfFullPath(basePath: self.originPath!) {
             
             let ws = NSWorkspace.shared
@@ -190,7 +288,7 @@ class MTextView: NSTextView, NSTextViewDelegate, NSTextStorageDelegate {
         }
     }
     @objc func finderAction(sender: Any) {
-        if let cell = possibleActiveCell {
+        if let cell = possibleActiveURLCell {
             let ws = NSWorkspace.shared
             let path = cell.stringValue.stringOfFullPath(basePath: self.originPath!)
             ws.selectFile(path, inFileViewerRootedAtPath: "")
@@ -198,7 +296,7 @@ class MTextView: NSTextView, NSTextViewDelegate, NSTextStorageDelegate {
     }
     @objc func QLAction(sender: Any) {
         
-        if let urlcell = self.possibleActiveCell,
+        if let urlcell = self.possibleActiveURLCell,
            let path = urlcell.stringValue.stringOfFullPath(basePath: self.originPath!) {
             
             self.previewingURL = NSURL(fileURLWithPath: path)
@@ -213,12 +311,27 @@ class MTextView: NSTextView, NSTextViewDelegate, NSTextStorageDelegate {
             }
         }
     }
+    @objc func removeAction(sender: Any) {
+        let text = self.textStorage!
+        let length = text.length
+        var effectiveRange = NSMakeRange(0, 0)
+        
+        if let selectedAttachment = self.possibleActiveURLCell?.attachment {
+            while NSMaxRange(effectiveRange) < length {
+                if let attachment = text.attribute(.attachment, at: NSMaxRange(effectiveRange), effectiveRange: &effectiveRange) as? NSTextAttachment {
+                    if attachment === selectedAttachment {
+                        text.replaceCharacters(in: effectiveRange, with: "")
+                    }
+                }
+            }
+        }
+    }
 }
 
 extension MTextView: QLPreviewPanelDataSource, QLPreviewPanelDelegate {
     
     func numberOfPreviewItems(in panel: QLPreviewPanel!) -> Int {
-        if self.possibleActiveCell != nil {
+        if self.possibleActiveURLCell != nil {
             return 1
         } else {
             return 0

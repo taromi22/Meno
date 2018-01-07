@@ -15,7 +15,11 @@ let ICON_SIZE: CGFloat = 16.0
 
 class URLAttachmentCell: NSTextAttachmentCell {
     
-    var originPath: String!
+    var originPath: String? {
+        didSet {
+            update()
+        }
+    }
     var textSize: NSSize {
         let text = self.stringValue.lastPathComponent as NSString
         return text.size(withAttributes: nil)
@@ -29,18 +33,19 @@ class URLAttachmentCell: NSTextAttachmentCell {
     
     required init(coder: NSCoder) {
         super.init(coder: coder)
+        
+        self.originPath = coder.decodeObject(of: NSString.self, forKey: "originPath") as String?
+    }
+    
+    override func encode(with aCoder: NSCoder) {
+        super.encode(with: aCoder)
+        
+        aCoder.encode(self.originPath, forKey: "originPath")
     }
     
     override var attachment: NSTextAttachment? {
         didSet {
-            if let name = attachment?.fileWrapper?.filename {
-                let ws = NSWorkspace.shared
-                
-                self.stringValue = name.deletingPathExtension.deletingPathExtension
-                if let fullpath = self.stringValue.stringOfFullPath(basePath: self.originPath) {
-                    self.image = ws.icon(forFile: fullpath)
-                }
-            }
+            update()
         }
     }
 
@@ -57,7 +62,7 @@ class URLAttachmentCell: NSTextAttachmentCell {
         
         // 角丸四角形を描く
         let rrectPath = NSBezierPath(roundedRect: drawingFrame, xRadius: 5.0, yRadius: 5.0)
-        NSColor.lightGray.setFill()
+        NSColor.init(calibratedWhite: 0.85, alpha: 1.0).setFill()
         rrectPath.fill()
         
         let iconSize = NSSize(width: ICON_SIZE, height: ICON_SIZE)
@@ -81,6 +86,20 @@ class URLAttachmentCell: NSTextAttachmentCell {
         text.draw(in: textRect, withAttributes: nil)
     }
     
+    func update() {
+        if let name = self.attachment?.fileWrapper?.preferredFilename {
+            let ws = NSWorkspace.shared
+            
+            self.stringValue = name.deletingPathExtension.deletingPathExtension
+            
+            if let originPath = self.originPath,
+                let fullpath = self.stringValue.stringOfFullPath(basePath: originPath) {
+                
+                self.image = ws.icon(forFile: fullpath)
+            }
+        }
+    }
+    
     override func cellSize() -> NSSize {
         var cellsize = NSSize()
         
@@ -101,10 +120,6 @@ extension String {
     private var nsstring: NSString {
         return (self as NSString)
     }
-    
-//    public func path(withComponents components: [String]) -> String {
-//        return NSString.path(withComponents: components) as String
-//    }
     
     public func substring(from index: Int) -> String {
         return nsstring.substring(from: index)
@@ -186,4 +201,8 @@ extension String {
             return NSString.path(withComponents: [String].init(repeating: "..", count: basePathComponents.count) + relativePathComponents)
         }
     }
+}
+
+protocol URLAttachmentCellDelegate {
+    var originPath: String { get }
 }

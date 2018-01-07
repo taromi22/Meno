@@ -9,9 +9,10 @@
 import Cocoa
 
 class EditView: NSView {
-    let dateHeight: CGFloat = 20.0
+    let dateHeight: CGFloat = 18.0
     let titleHeight: CGFloat = 38.0
-    let titleMargin: NSSize = NSMakeSize(8.0, 8.0)
+    let dateMargin: NSSize = NSMakeSize(0.0, 3.0)
+    let titleMargin: NSSize = NSMakeSize(8.0, 5.0)
     
     let titleFontSize: CGFloat = 24.0
     let mainFontSize: CGFloat = 13.0
@@ -25,7 +26,7 @@ class EditView: NSView {
     }
     var headerHeight: CGFloat {
         get {
-            return dateHeight + titleHeight + titleMargin.height*2
+            return dateHeight + titleHeight + dateMargin.height*2 + titleMargin.height*2
         }
     }
     
@@ -58,7 +59,7 @@ class EditView: NSView {
         super.init(frame: frameRect)
         
         // 日時ラベル
-        dateField = NSTextField(frame: NSMakeRect(frameRect.origin.x, frameRect.height - self.dateHeight, frameRect.width, dateHeight))
+        dateField = NSTextField(frame: NSMakeRect(frameRect.origin.x + self.dateMargin.width, frameRect.height - self.dateHeight - self.dateMargin.height, frameRect.width - self.dateMargin.width*2, dateHeight))
         dateField.autoresizingMask = [.width, .minYMargin]
         dateField.textColor = NSColor.gray
         dateField.isBordered = false
@@ -67,7 +68,7 @@ class EditView: NSView {
         self.addSubview(dateField)
         
         // タイトルフィールド
-        titleField = NSTextField(frame: NSMakeRect(frameRect.origin.x + titleMargin.width, frameRect.height - (dateHeight + titleHeight + titleMargin.height), frameRect.width - titleMargin.width*2, self.titleHeight))
+        titleField = NSTextField(frame: NSMakeRect(frameRect.origin.x + titleMargin.width, frameRect.height - (dateHeight + dateMargin.height*2 + titleHeight + titleMargin.height), frameRect.width - titleMargin.width*2, self.titleHeight))
         titleField.cell = TitleFieldCell()
         titleField.backgroundColor = .white
         titleField.isEnabled = true
@@ -79,7 +80,12 @@ class EditView: NSView {
         self.addSubview(titleField)
         
         // コンテンツビュー
-        textView = MTextView(frame: NSMakeRect(0, 0, frameRect.width, frameRect.height - self.headerHeight))
+        let textStorage = NSTextStorage()
+        let layoutManager = NSLayoutManager()
+        textStorage.addLayoutManager(layoutManager)
+        let textContainer = NSTextContainer(size: .zero)
+        layoutManager.addTextContainer(textContainer)
+        textView = MTextView(frame: NSMakeRect(0, 0, frameRect.width, frameRect.height - self.headerHeight), textContainer: textContainer)
         textView.minSize = NSMakeSize(0.0, frameRect.height - self.headerHeight)
         textView.maxSize = NSMakeSize(CGFloat.greatestFiniteMagnitude, CGFloat.greatestFiniteMagnitude)
         textView.isVerticallyResizable = true

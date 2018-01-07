@@ -12,85 +12,8 @@ class TextViewAttributeObserver: NSObject {
     
     var targetTextView: NSTextView? {
         didSet {
-            if let textView = targetTextView,
-               let storage = textView.textStorage {
-                
-                NotificationCenter.default.addObserver(forName: NSTextView.didChangeSelectionNotification, object: textView, queue: OperationQueue.main, using: { (notif) in
-                    let fontManager = NSFontManager.shared
-                    let selectedRange = textView.selectedRange()
-                    
-                    if selectedRange.length > 0 {
-                        var sameFontRange = NSMakeRange(0, 0)
-                        var isBoldfornow = false
-                        
-                        storage.enumerateAttribute(.font, in: selectedRange, options: .longestEffectiveRangeNotRequired, using: { (value, range, stop) in
-                            if let font = value as? NSFont {
-                                if fontManager.traits(of: font).contains(.boldFontMask) {
-                                    isBoldfornow = true
-                                    stop.pointee = false
-                                } else {
-                                    isBoldfornow = false
-                                    stop.pointee = true
-                                }
-                            }
-                        })
-                        self.isBold = isBoldfornow
-                        
-                        var isItalicfornow = false
-                        
-                        storage.enumerateAttribute(.font, in: selectedRange, options: .longestEffectiveRangeNotRequired, using: { (value, range, stop) in
-                            if let font = value as? NSFont {
-                                if fontManager.traits(of: font).contains(.italicFontMask) {
-                                    isItalicfornow = true
-                                    stop.pointee = false
-                                } else {
-                                    isItalicfornow = false
-                                    stop.pointee = true
-                                }
-                            }
-                        })
-                        self.isItalic = isItalicfornow
-                        
-                        if let underlineStyle = storage.attribute(.underlineStyle, at: selectedRange.location, longestEffectiveRange: &sameFontRange, in: selectedRange) as? Int {
-                            
-                            if underlineStyle != 0 &&
-                               selectedRange == sameFontRange {
-                                self.isUnderline = true
-                            } else {
-                                self.isUnderline = false
-                            }
-                        } else {
-                            self.isUnderline = false
-                        }
-                    } else {
-                        if let font = textView.typingAttributes[.font] as? NSFont {
-            
-                            if fontManager.traits(of: font).contains(.boldFontMask) {
-                                self.isBold = true
-                            } else {
-                                self.isBold = false
-                            }
-                            if fontManager.traits(of: font).contains(.italicFontMask) {
-                                self.isItalic = true
-                            } else {
-                                self.isItalic = false
-                            }
-                        } else {
-                            self.isBold = false
-                            self.isItalic = false
-                        }
-                            
-                        if let underlineStyle = textView.typingAttributes[.underlineStyle] as? Int {
-                            if underlineStyle != 0 {
-                                self.isUnderline = true
-                            } else {
-                                self.isUnderline = false
-                            }
-                        } else {
-                            self.isUnderline = false
-                        }
-                    }
-                })
+            if let textView = targetTextView {
+                NotificationCenter.default.addObserver(forName: NSTextView.didChangeSelectionNotification, object: textView, queue: OperationQueue.main, using: textViewSelectionChanged)
             }
         }
     }
@@ -106,7 +29,7 @@ class TextViewAttributeObserver: NSObject {
     }
     var underlineButton: NSButton? {
         didSet {
-            underlineButton?.target = NSFontManager.shared
+            underlineButton?.target = self
         }
     }
     var paragraphMenu: ParagraphMenu? {
@@ -159,6 +82,87 @@ class TextViewAttributeObserver: NSObject {
         }
     }
     
+    func textViewSelectionChanged(notif: Notification) {
+        if let textView = targetTextView,
+            let storage = textView.textStorage {
+            
+            let fontManager = NSFontManager.shared
+            let selectedRange = textView.selectedRange()
+            
+            if selectedRange.length > 0 {
+                var sameFontRange = NSMakeRange(0, 0)
+                var isBoldfornow = false
+                
+                storage.enumerateAttribute(.font, in: selectedRange, options: .longestEffectiveRangeNotRequired, using: { (value, range, stop) in
+                    if let font = value as? NSFont {
+                        if fontManager.traits(of: font).contains(.boldFontMask) {
+                            isBoldfornow = true
+                            stop.pointee = false
+                        } else {
+                            isBoldfornow = false
+                            stop.pointee = true
+                        }
+                    }
+                })
+                self.isBold = isBoldfornow
+                
+                var isItalicfornow = false
+                
+                storage.enumerateAttribute(.font, in: selectedRange, options: .longestEffectiveRangeNotRequired, using: { (value, range, stop) in
+                    if let font = value as? NSFont {
+                        if fontManager.traits(of: font).contains(.italicFontMask) {
+                            isItalicfornow = true
+                            stop.pointee = false
+                        } else {
+                            isItalicfornow = false
+                            stop.pointee = true
+                        }
+                    }
+                })
+                self.isItalic = isItalicfornow
+                
+                if let underlineStyle = storage.attribute(.underlineStyle, at: selectedRange.location, longestEffectiveRange: &sameFontRange, in: selectedRange) as? Int {
+                    
+                    if underlineStyle != 0 &&
+                        selectedRange == sameFontRange {
+                        self.isUnderline = true
+                    } else {
+                        self.isUnderline = false
+                    }
+                } else {
+                    self.isUnderline = false
+                }
+            } else {
+                if let font = textView.typingAttributes[.font] as? NSFont {
+                    
+                    if fontManager.traits(of: font).contains(.boldFontMask) {
+                        self.isBold = true
+                    } else {
+                        self.isBold = false
+                    }
+                    if fontManager.traits(of: font).contains(.italicFontMask) {
+                        self.isItalic = true
+                    } else {
+                        self.isItalic = false
+                    }
+                } else {
+                    self.isBold = false
+                    self.isItalic = false
+                }
+                
+                if let underlineStyle = textView.typingAttributes[.underlineStyle] as? Int {
+                    if underlineStyle != 0 {
+                        self.isUnderline = true
+                    } else {
+                        self.isUnderline = false
+                    }
+                } else {
+                    self.isUnderline = false
+                }
+            }
+        }
+    }
+    
     @objc func addUnderline() {
         if let textView = self.targetTextView,
            let storage = textView.textStorage {
@@ -196,12 +200,13 @@ extension TextViewAttributeObserver: ParagraphMenuDelegate {
         
             let fontManager = NSFontManager.shared
             let selectedRange = textView.selectedRange()
+            // 段落全体を取得
             let range = (self.targetTextView!.string as NSString).paragraphRange(for: selectedRange)
         
             switch self.paragraphStyle {
             case .caption:
                 let paragraph = NSParagraphStyle.default.mutableCopy() as! NSMutableParagraphStyle
-                var font = NSFont.systemFont(ofSize: 24.0)
+                var font = NSFont.systemFont(ofSize: 20.0)
                 font = fontManager.convert(font, toHaveTrait: [.boldFontMask])
                 
                 storage.addAttribute(.paragraphStyle, value: paragraph, range: range)
@@ -209,10 +214,26 @@ extension TextViewAttributeObserver: ParagraphMenuDelegate {
             
             case .text:
                 let paragraph = NSParagraphStyle.default.mutableCopy() as! NSMutableParagraphStyle
-                var font = NSFont.systemFont(ofSize: 13.0)
+                let font = NSFont.systemFont(ofSize: 13.0)
                 
                 storage.addAttribute(.paragraphStyle, value: paragraph, range: range)
                 storage.addAttribute(.font, value: font, range: range)
+                
+            case .list:
+                let font = NSFont.systemFont(ofSize: 13)
+                let list = NSTextList(markerFormat: NSTextList.MarkerFormat("{disc}"), options: 0)
+                let paragraph = NSParagraphStyle.default.mutableCopy() as! NSMutableParagraphStyle
+                
+                if paragraph.textLists.count > 0 {
+                    return
+                }
+                
+                paragraph.textLists = [list]
+                let attributes = [NSAttributedStringKey.paragraphStyle: paragraph, NSAttributedStringKey.font: font]
+                storage.insert(NSAttributedString(string: " \(list.marker(forItemNumber: 0))\t"), at: range.location)
+                
+                let listRange = NSMakeRange(range.location, range.length + 3)
+                storage.addAttributes(attributes, range: listRange)
                 
             default:
                 break

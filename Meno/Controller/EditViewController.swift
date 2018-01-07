@@ -15,6 +15,8 @@ class EditViewController: NSViewController {
     var isModified: Bool = false
     var delegate: EditViewControllerDelegate?
     var fontManager: NSFontManager!
+    var formatter: DateFormatter!
+    var itemsViewController: ItemsViewController!
     
     var textView: MTextView! {
         get {
@@ -40,6 +42,17 @@ class EditViewController: NSViewController {
         return self.textView.textStorage
     }
     
+    override init(nibName nibNameOrNil: NSNib.Name?, bundle nibBundleOrNil: Bundle?) {
+        super.init(nibName: nibNameOrNil, bundle: nibBundleOrNil)
+        
+        ValueTransformer.setValueTransformer(DateTransformerForTableView(), forName: .dateTransformerForTableView)
+    }
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
+        
+        ValueTransformer.setValueTransformer(DateTransformerForTableView(), forName: .dateTransformerForTableView)
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
     
@@ -57,9 +70,16 @@ class EditViewController: NSViewController {
         
         scrollView.documentView = contentView
         
+        self.formatter = DateFormatter()
+        self.formatter.dateStyle = .long
+        self.formatter.timeStyle = .short
+        self.formatter.locale = Locale(identifier: "ja_JP")
+        
         self.view.addSubview(scrollView)
     }
-    
+    ///
+    /// 現在開いているノートを保存し，指定されたノートを表示する
+    ///
     func saveAndLoad(newProfile: NoteProfile) {
         // 保存処理
         if isModified, let oldProfile = self.showingProfile {
@@ -68,22 +88,28 @@ class EditViewController: NSViewController {
         }
         self.isModified = false
         
-        // 日時を更新
-        self.dateField.stringValue = newProfile.updatedDate.description(with: Locale.current)
-        // 表示
+        // 新たなノートを表示
         if self.showingProfile !== newProfile {
             let atrstring = dbManager!.getNote(id: newProfile.id)
             self.textStorage!.setAttributedString(atrstring ?? NSAttributedString())
             self.titleField.stringValue = newProfile.title
+            self.dateField.stringValue = self.formatter.string(from: newProfile.updatedDate)
             self.showingProfile = newProfile
+            
+            //  ノートへのリンクを更新
+            self.contentView.textView.updateAttachments()
         }
     }
-    
+    ///
+    /// 現在のノートに変更を加えたときに呼ぶ．
+    ///
     func didChange() {
         self.isModified = true
         // 日時を更新
-        self.showingProfile?.updatedDate = Date()
-        self.dateField.stringValue = self.showingProfile?.updatedDate.description(with: Locale.current) ?? ""
+        let now = Date()
+        self.showingProfile?.updatedDate = now
+        
+        self.dateField.stringValue = self.formatter.string(from: now)
         //
         self.delegate?.editViewControllerContentChanged()
     }
