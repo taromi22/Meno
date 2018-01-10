@@ -9,7 +9,7 @@
 import Cocoa
 import FMDB
 
-class WindowController: NSWindowController, ItemsViewControllerDelegate {
+class WindowController: NSWindowController {
     @IBOutlet weak var boldButton: NSButton!
     @IBOutlet weak var italicButton: NSButton!
     @IBOutlet weak var underlineButton: NSButton!
@@ -42,7 +42,6 @@ class WindowController: NSWindowController, ItemsViewControllerDelegate {
         dbManager = DBManager()
         editViewController.dbManager = dbManager
         
-        titlesViewController.delegate = self
         editViewController.delegate = self
         
         self.paragraphMenu = ParagraphMenu(title: "段落")
@@ -61,7 +60,7 @@ class WindowController: NSWindowController, ItemsViewControllerDelegate {
         let openPanel = NSOpenPanel()
         openPanel.canChooseFiles = true
         openPanel.canChooseDirectories = false
-        openPanel.canCreateDirectories = false
+        openPanel.canCreateDirectories = true
         openPanel.allowsMultipleSelection = false
         
         openPanel.beginSheetModal(for: self.window!) {
@@ -83,16 +82,6 @@ class WindowController: NSWindowController, ItemsViewControllerDelegate {
                     }
                 }
             }
-        }
-    }
-    
-    func itemsViewControllerSelectionChanged(newProfile: NoteProfile?, oldProfile: inout NoteProfile?) {
-        
-        if let profile = newProfile {
-            editViewController.saveAndLoad(newProfile: profile)
-        }
-        if let old = oldProfile {
-            oldProfile = dbManager?.getProfile(id: old.id)
         }
     }
 

@@ -12,8 +12,6 @@ class ItemsViewController: NSViewController, NSTableViewDataSource, NSTableViewD
     @IBOutlet weak var tableView: NSTableView!
     @IBOutlet var arrayController: NSArrayController!
     
-    weak var delegate: ItemsViewControllerDelegate?
-    
     var editViewController: EditViewController!
     var preSelectedProfile: NoteProfile? = nil
     @objc var items = [NoteProfile]()
@@ -79,10 +77,6 @@ class ItemsViewController: NSViewController, NSTableViewDataSource, NSTableViewD
             decidedIndexes = IndexSet(integer: tableView.selectedRow)
         }
         
-        // 以下は間違い．１つ前のものを参照している
-        let newProfile = self.selectedProfile
-        delegate?.itemsViewControllerSelectionChanging(newProfile: newProfile, oldProfile: &self.preSelectedProfile)
-        
         return decidedIndexes
     }
 //
@@ -94,10 +88,11 @@ class ItemsViewController: NSViewController, NSTableViewDataSource, NSTableViewD
 
     
     func tableViewSelectionDidChange(_ notification: Notification) {
-        let newProfile = selectedProfile
+        if let newProfile = self.selectedProfile {
         
-        delegate?.itemsViewControllerSelectionChanged(newProfile: newProfile, oldProfile: &self.preSelectedProfile)
-        self.preSelectedProfile = newProfile
+            self.editViewController.saveAndLoad(newProfile: newProfile)
+            self.preSelectedProfile = newProfile
+        }
     }
     
     var selectedProfile: NoteProfile? {
@@ -124,8 +119,6 @@ class ItemsViewController: NSViewController, NSTableViewDataSource, NSTableViewD
         self.preSelectedProfile = selectedProfile
         
         self.arrayController.insert(item, atArrangedObjectIndex: 0)
-            
-        self.delegate?.itemsViewControllerSelectionChanged(newProfile: item, oldProfile: &self.preSelectedProfile)
 
         self.preSelectedProfile = selectedProfile
     }
@@ -184,13 +177,4 @@ class ItemsViewController: NSViewController, NSTableViewDataSource, NSTableViewD
             count += 1
         }
     }
-}
-
-protocol ItemsViewControllerDelegate: class {
-    func itemsViewControllerSelectionChanged(newProfile: NoteProfile?, oldProfile: inout NoteProfile?)
-    func itemsViewControllerSelectionChanging(newProfile: NoteProfile?, oldProfile: inout NoteProfile?)
-}
-extension ItemsViewControllerDelegate {
-    func itemsViewControllerSelectionChanged(newProfile: NoteProfile?, oldProfile: inout NoteProfile?) { }
-    func itemsViewControllerSelectionChanging(newProfile: NoteProfile?, oldProfile: inout NoteProfile?) { }
 }

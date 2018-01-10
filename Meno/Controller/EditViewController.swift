@@ -78,7 +78,7 @@ class EditViewController: NSViewController {
         self.view.addSubview(scrollView)
     }
     ///
-    /// 現在開いているノートを保存し，指定されたノートを表示する
+    /// 現在開いているノートを必要ならば保存したあと，指定されたノートを表示する
     ///
     func saveAndLoad(newProfile: NoteProfile) {
         // 保存処理
@@ -99,6 +99,15 @@ class EditViewController: NSViewController {
             //  ノートへのリンクを更新
             self.contentView.textView.updateAttachments()
         }
+    }
+    // 現在開いているノートを必要ならば保存する．
+    func save() {
+        
+        if isModified, let oldProfile = self.showingProfile {
+            dbManager!.saveProfile(profile: oldProfile)
+            dbManager!.saveNote(id: oldProfile.id, content: self.textStorage!)
+        }
+        self.isModified = false
     }
     ///
     /// 現在のノートに変更を加えたときに呼ぶ．
