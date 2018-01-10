@@ -42,8 +42,6 @@ class WindowController: NSWindowController {
         dbManager = DBManager()
         editViewController.dbManager = dbManager
         
-        editViewController.delegate = self
-        
         self.paragraphMenu = ParagraphMenu(title: "段落")
         
         attributeObserver = TextViewAttributeObserver()
@@ -106,11 +104,5 @@ class WindowController: NSWindowController {
             
             self.paragraphMenu.popUp(positioning: nil, at: point, in: button)
         }
-    }
-}
-
-extension WindowController: EditViewControllerDelegate {
-    func editViewControllerContentChanged() {
-        self.titlesViewController.raiseSelectedItem()
     }
 }

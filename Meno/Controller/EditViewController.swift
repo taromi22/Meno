@@ -13,7 +13,6 @@ class EditViewController: NSViewController {
     var scrollView: NSScrollView!
     var contentView: EditView!
     var isModified: Bool = false
-    var delegate: EditViewControllerDelegate?
     var fontManager: NSFontManager!
     var formatter: DateFormatter!
     var itemsViewController: ItemsViewController!
@@ -120,7 +119,7 @@ class EditViewController: NSViewController {
         
         self.dateField.stringValue = self.formatter.string(from: now)
         //
-        self.delegate?.editViewControllerContentChanged()
+        self.itemsViewController.raiseSelectedItem()
     }
 }
 
@@ -133,8 +132,4 @@ extension EditViewController: EditViewDelegate {
     func editViewContentChanged() {
         self.didChange()
     }
-}
-
-protocol EditViewControllerDelegate: class {
-    func editViewControllerContentChanged()
 }
