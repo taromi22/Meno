@@ -20,7 +20,6 @@ class NoteAttachmentCell: NSTextAttachmentCell {
         }
     }
     
-    
     override func draw(withFrame cellFrame: NSRect, in controlView: NSView?) {
         commonDraw(withFrame: cellFrame, in: controlView)
     }
@@ -38,6 +37,7 @@ class NoteAttachmentCell: NSTextAttachmentCell {
         NSColor.black.set()
         rrectPath.stroke()
         
+        // 文字を描画
         let text = self.stringValue as NSString
         let textOrigin = NSPoint(x: drawingFrame.origin.x + MARGIN_X, y: drawingFrame.origin.y + drawingFrame.height/2 - text.size(withAttributes: nil).height/2)
         let textSize = NSSize(width: drawingFrame.size.width - 2*MARGIN_X, height: drawingFrame.size.height)
@@ -45,7 +45,7 @@ class NoteAttachmentCell: NSTextAttachmentCell {
         
         text.draw(in: textRect, withAttributes: nil)
     }
-    
+    // Wrapperから読み込んでノートのタイトルを更新する．
     func update() {
         if let data = self.attachment?.fileWrapper?.regularFileContents {
             if let profile = NSKeyedUnarchiver.unarchiveObject(with: data) as? NoteProfile {
@@ -53,7 +53,7 @@ class NoteAttachmentCell: NSTextAttachmentCell {
             }
         }
     }
-    
+    // 描画するセルのサイズを返す
     override func cellSize() -> NSSize {
         var cellsize = NSSize()
         

@@ -8,6 +8,7 @@
 
 import Cocoa
 
+// TextViewのAttributeを監視し，自作のフォント操作ボタン等の管理を行う．
 class TextViewAttributeObserver: NSObject {
     
     var targetTextView: NSTextView? {
@@ -17,19 +18,25 @@ class TextViewAttributeObserver: NSObject {
             }
         }
     }
+    // 代入すると太字ボタンとして登録される．ボタンのtagを2に設定しておくことが必要．
     var boldButton: NSButton? {
         didSet {
-            boldButton?.target = NSFontManager.shared
+            boldButton?.target = self
+            boldButton?.action = #selector(self.bold)
         }
     }
+    // 代入するとイタリックボタンとして登録される．ボタンのtagを1に設定しておくことが必要．
     var italicButton: NSButton? {
         didSet {
-            italicButton?.target = NSFontManager.shared
+            italicButton?.target = self
+            italicButton?.action = #selector(self.italic)
         }
     }
+    // 代入すると下線ボタンとして登録される．
     var underlineButton: NSButton? {
         didSet {
             underlineButton?.target = self
+            underlineButton?.action = #selector(self.underline)
         }
     }
     var paragraphMenu: ParagraphMenu? {
@@ -39,155 +46,126 @@ class TextViewAttributeObserver: NSObject {
             }
         }
     }
-    
+    // TextViewの現在のキャレット位置が太字フォントかどうか．セットするとボタンのオンオフが連動する．
+    // ここから操作してもフォントは切り替わらない．
     var isBold: Bool = false {
         didSet {
-            let fontManager = NSFontManager.shared
-            
             if isBold {
                 self.boldButton?.state = .on
-                self.boldButton?.action = #selector(fontManager.removeFontTrait(_:))
             } else {
                 self.boldButton?.state = .off
-                self.boldButton?.action = #selector(fontManager.addFontTrait(_:))
             }
         }
     }
-    var isItalic: Bool = false {
+    // TextViewの現在のキャレット位置がイタリックフォントかどうか．セットするとボタンのオンオフが連動する．
+    // ここから操作してもフォントは切り替わらない．
+    private(set) var isItalic: Bool = false {
         didSet {
-            let fontManager = NSFontManager.shared
-            
+            // ボタンのオンオフを切り替え
             if isItalic {
                 self.italicButton?.state = .on
-                self.italicButton?.action = #selector(fontManager.removeFontTrait(_:))
             } else {
                 self.italicButton?.state = .off
-                self.italicButton?.action = #selector(fontManager.addFontTrait(_:))
             }
         }
     }
+    // TextViewの現在のキャレット位置が下線ありかどうか．セットするとボタンのオンオフが連動する．
+    // ここから操作してもフォントは切り替わらない．
     var isUnderline: Bool = false {
         didSet {
             if isUnderline {
                 self.underlineButton?.state = .on
-                self.underlineButton?.action = #selector(self.removeUnderline)
             } else {
                 self.underlineButton?.state = .off
-                self.underlineButton?.action = #selector(self.addUnderline)
             }
         }
     }
+    // TextViewの現在のキャレット位置の段落スタイル．
     var paragraphStyle: ParagraphStyle = ParagraphStyle.text {
         didSet {
         }
     }
     
     func textViewSelectionChanged(notif: Notification) {
+        
+        // 太字・イタリックの判別
+        let fontManager = NSFontManager.shared
+        
+        if let font = fontManager.selectedFont {
+            
+            let traitMask = fontManager.traits(of: font)
+            
+            self.isBold = traitMask.contains(.boldFontMask)
+            self.isItalic = traitMask.contains(.italicFontMask)
+        }
+        
+        // 下線の判別
+        
         if let textView = targetTextView,
             let storage = textView.textStorage {
             
-            let fontManager = NSFontManager.shared
             let selectedRange = textView.selectedRange()
             
             if selectedRange.length > 0 {
-                var sameFontRange = NSMakeRange(0, 0)
-                var isBoldfornow = false
+                var allUnderlined = true
                 
-                storage.enumerateAttribute(.font, in: selectedRange, options: .longestEffectiveRangeNotRequired, using: { (value, range, stop) in
-                    if let font = value as? NSFont {
-                        if fontManager.traits(of: font).contains(.boldFontMask) {
-                            isBoldfornow = true
-                            stop.pointee = false
-                        } else {
-                            isBoldfornow = false
-                            stop.pointee = true
-                        }
-                    }
-                })
-                self.isBold = isBoldfornow
-                
-                var isItalicfornow = false
-                
-                storage.enumerateAttribute(.font, in: selectedRange, options: .longestEffectiveRangeNotRequired, using: { (value, range, stop) in
-                    if let font = value as? NSFont {
-                        if fontManager.traits(of: font).contains(.italicFontMask) {
-                            isItalicfornow = true
-                            stop.pointee = false
-                        } else {
-                            isItalicfornow = false
-                            stop.pointee = true
-                        }
-                    }
-                })
-                self.isItalic = isItalicfornow
-                
-                if let underlineStyle = storage.attribute(.underlineStyle, at: selectedRange.location, longestEffectiveRange: &sameFontRange, in: selectedRange) as? Int {
+                storage.enumerateAttribute(.underlineStyle, in: selectedRange, options: .longestEffectiveRangeNotRequired, using: { (value, range, stop) in
                     
-                    if underlineStyle != 0 &&
-                        selectedRange == sameFontRange {
-                        self.isUnderline = true
+                    if let underlineStyle = value as? Int {
+                        
+                        if underlineStyle == 0 {
+                            
+                            allUnderlined = false
+                            stop.pointee = true
+                        }
                     } else {
-                        self.isUnderline = false
+                        allUnderlined = false
+                        stop.pointee = true
                     }
-                } else {
-                    self.isUnderline = false
-                }
+                })
+                
+                self.isUnderline = allUnderlined
+                
             } else {
-                if let font = textView.typingAttributes[.font] as? NSFont {
-                    
-                    if fontManager.traits(of: font).contains(.boldFontMask) {
-                        self.isBold = true
-                    } else {
-                        self.isBold = false
-                    }
-                    if fontManager.traits(of: font).contains(.italicFontMask) {
-                        self.isItalic = true
-                    } else {
-                        self.isItalic = false
-                    }
-                } else {
-                    self.isBold = false
-                    self.isItalic = false
-                }
-                
                 if let underlineStyle = textView.typingAttributes[.underlineStyle] as? Int {
-                    if underlineStyle != 0 {
-                        self.isUnderline = true
-                    } else {
-                        self.isUnderline = false
-                    }
+                    
+                    self.isUnderline = (underlineStyle != 0)
                 } else {
+                    
                     self.isUnderline = false
                 }
             }
         }
     }
     
-    @objc func addUnderline() {
-        if let textView = self.targetTextView,
-           let storage = textView.textStorage {
-            
-            let range = textView.selectedRange()
-            
-            if range.length == 0 {
-                textView.typingAttributes[.underlineStyle] = NSUnderlineStyle.styleSingle.rawValue
-            } else {
-                storage.addAttribute(.underlineStyle, value: NSUnderlineStyle.styleSingle.rawValue , range: textView.selectedRange())
-            }
-        }
-    }
-    @objc func removeUnderline() {
+    @objc func bold() {
+        let fontManager = NSFontManager.shared
         
-        if let textView = self.targetTextView,
-           let storage = textView.textStorage {
+        if self.isBold {
+            fontManager.removeFontTrait(self.boldButton)
+        } else {
+            fontManager.addFontTrait(self.boldButton)
+        }
+        
+        self.isBold = !self.isBold
+    }
+    @objc func italic() {
+        let fontManager = NSFontManager.shared
+        
+        if self.isItalic {
+            fontManager.removeFontTrait(self.italicButton)
+        } else {
+            fontManager.addFontTrait(self.italicButton)
+        }
+        
+        self.isItalic = !self.isItalic
+    }
+    @objc func underline() {
+        if let textView = self.targetTextView {
             
-            let range = textView.selectedRange()
+            textView.underline(self)
             
-            if range.length == 0 {
-                textView.typingAttributes[.underlineStyle] = 0
-            } else {
-                storage.removeAttribute(.underlineStyle, range: textView.selectedRange())
-            }
+            self.isUnderline = !self.isUnderline
         }
     }
 }

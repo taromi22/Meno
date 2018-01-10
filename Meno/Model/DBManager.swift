@@ -10,15 +10,16 @@ import Cocoa
 import FMDB
 
 class DBManager: NSObject {
-    var db: FMDatabase? = nil
+    var db: FMDatabase?
     private(set) var filePath: String?
     
+    /// 開いているデータベースのフォルダの絶対パスを取得する．
     var originPath: String? {
         get {
             return self.filePath?.deletingLastPathComponent
         }
     }
-    
+    /// データベースファイルを開く
     func open(url: URL, completed: (Bool) -> Void) {
         db = FMDatabase(url: url)
         
@@ -29,8 +30,8 @@ class DBManager: NSObject {
         }
         completed(result)
     }
-    
-    func getProfile() -> [NoteProfile] {
+    /// データベースファイルからすべてのNoteProfileを読み込む．
+    func getProfiles() -> [NoteProfile] {
         let results = db?.executeQuery("SELECT ID, TITLE, STRING, DATE_UPDATE, DATE_CREATE, ORDER_NUMBER FROM ITEMS", withParameterDictionary: nil)
         var profiles: [NoteProfile] = []
         
@@ -49,7 +50,7 @@ class DBManager: NSObject {
         
         return profiles
     }
-    
+    /// 指定したidをもつNoteProfileをデータベースファイルから読み込む．
     func getProfile(id: Int32) -> NoteProfile? {
         let results = db?.executeQuery("SELECT ID, TITLE, STRING, DATE_UPDATE, DATE_CREATE, ORDER_NUMBER FROM ITEMS WHERE ID=?", withArgumentsIn: [id])
         
@@ -67,11 +68,11 @@ class DBManager: NSObject {
         
         return nil
     }
-    
+    /// データベースファイルにNoteProfileを上書き保存する．すでに存在するidをもつNoteProfileである必要がある．
     func saveProfile(profile: NoteProfile) {
         db!.executeUpdate("UPDATE ITEMS SET TITLE=?, STRING=?, DATE_UPDATE=?, DATE_CREATE=?, ORDER_NUMBER=? WHERE ID=?", withArgumentsIn: [profile.title, profile.string, profile.updatedDate as NSDate, profile.createdDate as NSDate, profile.order, profile.id])
     }
-    
+    /// 指定されたidをもつノートの内容をデータベースファイルから読み込む．
     func getNote(id: Int32) -> NSAttributedString? {
         let results = db?.executeQuery("SELECT CONTENT FROM ITEMS WHERE ID=\(id)", withParameterDictionary: nil)
         
@@ -86,14 +87,15 @@ class DBManager: NSObject {
         
         return nil
     }
-    
+    /// データベースファイルにノートの内容を保存する．すでに存在するノートのidである必要がある．
     @discardableResult
     func saveNote(id: Int32, content: NSAttributedString) -> Bool {
         let data = NSKeyedArchiver.archivedData(withRootObject: content)
         
         return db!.executeUpdate("UPDATE ITEMS SET CONTENT=? WHERE ID=\(id)", withArgumentsIn: [data])
     }
-    
+    /// 新たなノートを作成する．
+    // - returns: 新規作成したノートのid．
     func addNew() -> Int32? {
         if db!.executeUpdate("INSERT INTO ITEMS(TITLE, CONTENT, STRING, DATE_UPDATE, DATE_CREATE) VALUES(?, ?, ?, ?, ?)", withArgumentsIn: ["", NSKeyedArchiver.archivedData(withRootObject: NSAttributedString()), "", NSDate(), NSDate()]) {
             let results = db!.executeQuery("SELECT ID FROM ITEMS WHERE ROWID = last_insert_rowid()", withParameterDictionary: nil)
@@ -104,7 +106,7 @@ class DBManager: NSObject {
         }
         return nil
     }
-    
+    // ノートを削除する．
     func removeItem(id: Int32) -> Bool {
         return db!.executeUpdate("DELETE FROM ITEMS WHERE ID = \(id)", withParameterDictionary: [:])
     }

@@ -12,7 +12,7 @@ import Cocoa
 class NoteProfile: NSObject, NSPasteboardWriting, NSPasteboardReading, NSCoding, NSSecureCoding {
     static var supportsSecureCoding: Bool = true
     
-    
+    // NoteProfile用のカスタムPasteboardType
     static var pasteboardTypeNoteProfile: NSPasteboard.PasteboardType = .init("meno.profile")
     
     func encode(with aCoder: NSCoder) {
@@ -24,10 +24,8 @@ class NoteProfile: NSObject, NSPasteboardWriting, NSPasteboardReading, NSCoding,
         aCoder.encode(order, forKey: "order")
     }
     
-    
     @objc var id: Int32
     @objc var title: String {
-        //  titleForPresentationの変更通知を手動で呼ぶ
         willSet {
             self.willChangeValue(forKey: "titleForPresentation")
         }
@@ -74,24 +72,27 @@ class NoteProfile: NSObject, NSPasteboardWriting, NSPasteboardReading, NSCoding,
         self.order = aDecoder.decodeInt32(forKey: "order")
     }
     
+    // Pasteboardからの復元にプロパティリストは利用しない．
     required init?(pasteboardPropertyList propertyList: Any, ofType type: NSPasteboard.PasteboardType) {
         return nil
     }
     
-    
+    // Pasteboardに書込み可能なタイプ
     func writableTypes(for pasteboard: NSPasteboard) -> [NSPasteboard.PasteboardType] {
         return [NoteProfile.pasteboardTypeNoteProfile]
     }
-    
+    // KeyedArchiverを用いてPasteboardに書き込む
     func pasteboardPropertyList(forType type: NSPasteboard.PasteboardType) -> Any? {
         if type == NoteProfile.pasteboardTypeNoteProfile {
             return NSKeyedArchiver.archivedData(withRootObject: self)
         }
         return nil
     }
+    
     static func readableTypes(for pasteboard: NSPasteboard) -> [NSPasteboard.PasteboardType] {
         return [NoteProfile.pasteboardTypeNoteProfile]
     }
+    // PasteboardにはKeyedArchiveで保存する．プロパティリストからの読み込みはしない
     static func readingOptions(forType type: NSPasteboard.PasteboardType, pasteboard: NSPasteboard) -> NSPasteboard.ReadingOptions {
         return .asKeyedArchive
     }

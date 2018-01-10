@@ -9,7 +9,7 @@
 import Cocoa
 
 class MTextAttachment: NSTextAttachment {
-    // なぜか呼ばれない・・・
+    // Attachmentの位置がベースライン上になってしまい，文字に比べて上方に表示されるため，位置を下に下げたい．がなぜか呼ばれない・・・
     override func attachmentBounds(for textContainer: NSTextContainer?, proposedLineFragment lineFrag: NSRect, glyphPosition position: CGPoint, characterIndex charIndex: Int) -> NSRect {
         let font = NSFont.systemFont(ofSize: 13)
         var bounds = CGRect()

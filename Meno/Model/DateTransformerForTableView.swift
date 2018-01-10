@@ -5,6 +5,7 @@
 //  Created by 柳谷太郎 on 2018/01/03.
 //  Copyright © 2018年 Taro Yanagiya. All rights reserved.
 //
+//  Date型のノートの更新日時を，ノートリストに表示する形式に変換する
 
 import Cocoa
 

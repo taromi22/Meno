@@ -75,7 +75,7 @@ class WindowController: NSWindowController, ItemsViewControllerDelegate {
                     
                     self.window!.title = url.path
                     
-                    if let profiles = self.dbManager?.getProfile() {
+                    if let profiles = self.dbManager?.getProfiles() {
                         self.titlesViewController.setItems(profiles, didSet: {
                             // 項目の準備ができ，一番上の項目が選択され，内容の表示まで終わったとき
                             self.window?.makeFirstResponder(self.editViewController.contentView.textView)
