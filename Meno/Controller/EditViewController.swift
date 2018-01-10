@@ -76,7 +76,6 @@ class EditViewController: NSViewController {
         
         self.view.addSubview(scrollView)
     }
-    ///
     /// 現在開いているノートを必要ならば保存したあと，指定されたノートを表示する
     ///
     func saveAndLoad(newProfile: NoteProfile) {

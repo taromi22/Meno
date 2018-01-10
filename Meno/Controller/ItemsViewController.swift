@@ -16,13 +16,23 @@ class ItemsViewController: NSViewController, NSTableViewDataSource, NSTableViewD
     var preSelectedProfile: NoteProfile? = nil
     @objc var items = [NoteProfile]()
     
-    
-    var maxOrder: Int32? {
+    var selectedProfile: NoteProfile? {
         get {
-            if let showingItems = self.arrayController.arrangedObjects as? [NoteProfile] {
-                return showingItems.last?.order
+            if self.arrayController.selectionIndexes.count == 1 {
+                return self.arrayController.selectedObjects[0] as? NoteProfile
+            } else {
+                return nil
             }
-            return nil
+        }
+    }
+    
+    var selectedProfiles: [NoteProfile]? {
+        get {
+            if self.arrayController.selectionIndexes.count > 0 {
+                return self.arrayController.selectedObjects as? [NoteProfile]
+            } else {
+                return nil
+            }
         }
     }
     
@@ -44,6 +54,7 @@ class ItemsViewController: NSViewController, NSTableViewDataSource, NSTableViewD
         }
     }
     
+    // TableViewは編集禁止
     func tableView(_ tableView: NSTableView, shouldEdit tableColumn: NSTableColumn?, row: Int) -> Bool {
         return false
     }
@@ -61,31 +72,10 @@ class ItemsViewController: NSViewController, NSTableViewDataSource, NSTableViewD
         return true
     }
     
-    func tableView(_ tableView: NSTableView, validateDrop info: NSDraggingInfo, proposedRow row: Int, proposedDropOperation dropOperation: NSTableView.DropOperation) -> NSDragOperation {
-        return .link
-    }
-    
-    func tableView(_ tableView: NSTableView, acceptDrop info: NSDraggingInfo, row: Int, dropOperation: NSTableView.DropOperation) -> Bool {
-        return false
-    }
-    
     func tableView(_ tableView: NSTableView, selectionIndexesForProposedSelection proposedSelectionIndexes: IndexSet) -> IndexSet {
         
-        var decidedIndexes = proposedSelectionIndexes
-        
-        if proposedSelectionIndexes.count == 0 {
-            decidedIndexes = IndexSet(integer: tableView.selectedRow)
-        }
-        
-        return decidedIndexes
+        return proposedSelectionIndexes
     }
-//
-//    func tableView(_ tableView: NSTableView, pasteboardWriterForRow row: Int) -> NSPasteboardWriting? {
-//        let list = self.arrayController.arrangedObjects as! [NoteProfile]
-//
-//        return list[row]
-//    }
-
     
     func tableViewSelectionDidChange(_ notification: Notification) {
         if let newProfile = self.selectedProfile {
@@ -95,26 +85,7 @@ class ItemsViewController: NSViewController, NSTableViewDataSource, NSTableViewD
         }
     }
     
-    var selectedProfile: NoteProfile? {
-        get {
-            if self.arrayController.selectionIndexes.count == 1 {
-                return self.arrayController.selectedObjects[0] as? NoteProfile
-            } else {
-                return nil
-            }
-        }
-    }
-    
-    var selectedProfiles: [NoteProfile]? {
-        get {
-            if self.arrayController.selectionIndexes.count > 0 {
-                return self.arrayController.selectedObjects as? [NoteProfile]
-            } else {
-                return nil
-            }
-        }
-    }
-    
+    // 新たなノートを追加する．
     func addItem(_ item: NoteProfile) {
         self.preSelectedProfile = selectedProfile
         
@@ -122,9 +93,9 @@ class ItemsViewController: NSViewController, NSTableViewDataSource, NSTableViewD
 
         self.preSelectedProfile = selectedProfile
     }
-    
+    // 選択したノートを削除する．
     func removeSelectedItem() {
-        // selectionIndexesとselectedProfilesを両方使うことにする．両者が常に一致しているという前提
+        // ArrayControllerのselectionIndexesとselectedObjectsを両方使うことにする．両者が常に一致しているという前提
         let selectedIndexes = self.arrayController.selectionIndexes
         let profiles = self.selectedProfiles
         
@@ -133,6 +104,7 @@ class ItemsViewController: NSViewController, NSTableViewDataSource, NSTableViewD
             self.preSelectedProfile = nil
         }
         
+        // 削除のアニメーション．アニメーション終了と同時にArrayControllerに削除の指示をする
         NSAnimationContext.runAnimationGroup({
             (context) in
             self.tableView.removeRows(at: selectedIndexes, withAnimation: .effectFade)
@@ -142,13 +114,23 @@ class ItemsViewController: NSViewController, NSTableViewDataSource, NSTableViewD
         
     }
     
+    // ノートのリストを読み込む
     func setItems(_ items: [NoteProfile], didSet: ()->()) {
+        // すべてのアイテムを削除
+        if let items = self.arrayController.arrangedObjects as? [Any],
+            items.count > 0 {
+            
+            self.arrayController.remove(atArrangedObjectIndexes: IndexSet(integersIn: 0..<items.count))
+        }
         self.arrayController.add(contentsOf: items)
+        // 日付順に並び替え
         self.arrayController.rearrangeObjects()
+        // 一番上を選択
         self.arrayController.setSelectionIndex(0)
         
         didSet()
     }
+    // 選択中のノートの日時を更新したときに呼ぶ．
     func raiseSelectedItem() {
         if self.arrayController.selectionIndex == 0 {
             return

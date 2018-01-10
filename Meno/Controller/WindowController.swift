@@ -84,10 +84,9 @@ class WindowController: NSWindowController {
     }
 
     @IBAction func addAction(_ sender: Any) {
-        if let id = dbManager!.addNew() {
-            let profile = NoteProfile(id: id, title: "", string: "", updatedDate: Date(), createdDate: Date(), order: 0)
+        if let id = dbManager.addNew(),
+            let profile = dbManager.getProfile(id: id) {
             titlesViewController.addItem(profile)
-            dbManager!.saveProfile(profile: profile)
             self.window!.makeFirstResponder(self.editViewController.titleField)
         }
     }
