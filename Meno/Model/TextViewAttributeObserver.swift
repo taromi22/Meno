@@ -35,8 +35,8 @@ class TextViewAttributeObserver: NSObject {
     // 代入すると下線ボタンとして登録される．
     var underlineButton: NSButton? {
         didSet {
-            underlineButton?.target = self
-            underlineButton?.action = #selector(self.underline)
+            //underlineButton?.target = self
+            //underlineButton?.action = #selector(self.underline)
         }
     }
     var paragraphMenu: ParagraphMenu? {

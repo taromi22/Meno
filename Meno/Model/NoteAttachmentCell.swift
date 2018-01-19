@@ -43,17 +43,23 @@ class NoteAttachmentCell: NSTextAttachmentCell {
         let textSize = NSSize(width: drawingFrame.size.width - 2*MARGIN_X, height: drawingFrame.size.height)
         let textRect = CGRect(origin: textOrigin, size: textSize)
         
-        text.draw(in: textRect, withAttributes: nil)
+        if self.isEnabled {
+            text.draw(in: textRect, withAttributes: nil)
+        } else {
+            text.draw(in: textRect, withAttributes: [.foregroundColor: NSColor.gray])
+        }
     }
-    // Wrapperから読み込んでノートのタイトルを更新する．
+    /// Wrapperから読み込んでノートのタイトルを更新する．
     func update() {
         if let data = self.attachment?.fileWrapper?.regularFileContents {
             if let profile = NSKeyedUnarchiver.unarchiveObject(with: data) as? NoteProfile {
                 self.stringValue = profile.titleForPresentation
             }
+        } else {
+            
         }
     }
-    // 描画するセルのサイズを返す
+    /// 描画するセルのサイズを返す
     override func cellSize() -> NSSize {
         var cellsize = NSSize()
         

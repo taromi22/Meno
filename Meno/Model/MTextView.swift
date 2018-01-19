@@ -10,17 +10,19 @@ import Cocoa
 import Quartz
 
 class MTextView: NSTextView {
+    
     var QLPanel: QLPreviewPanel?
     /// 現在メニューを表示している可能性のあるCell (メニューを表示するときに対象のCellをこの変数に入れる)
     var possibleActiveURLCell: URLAttachmentCell?
     /// 現在QuickLookしているURL
     var previewingURL: NSURL?
-    var controller: EditViewController!
-    var originPath: String? {
+    var originPath: String! {
         get {
-            return self.controller.dbManager?.originPath
+            return self.dbManager.originPath!
         }
     }
+    var dbManager: DBManager!
+    var mTextViewDelegate: MTextViewDelegate?
     
     override init(frame frameRect: NSRect) {
         super.init(frame: frameRect)
@@ -73,6 +75,7 @@ class MTextView: NSTextView {
         return shouldHandleDrag(sender) ? [.link] : super.draggingUpdated(sender)
     }
     
+    // ドロップされたとき
     override func performDragOperation(_ sender: NSDraggingInfo) -> Bool {
         let pboard = sender.draggingPasteboard()
 
@@ -92,7 +95,7 @@ class MTextView: NSTextView {
                 for url in urls {
                     if let path = url.path.removingPercentEncoding {
                         
-                        let cell = URLAttachmentCell(originPath: self.controller.dbManager!.originPath!)
+                        let cell = URLAttachmentCell(originPath: self.originPath)
                         
                         let relativePath = path.stringOfRelativePath(basePath: self.originPath!)
                         
@@ -178,14 +181,14 @@ class MTextView: NSTextView {
                     if let data = attachment.fileWrapper?.regularFileContents,
                        let oldProfile = NSKeyedUnarchiver.unarchiveObject(with: data) as? NoteProfile{
                         
-                        let newProfile = self.controller.dbManager!.getProfile(id: oldProfile.id)
-                        
-                        if newProfile == nil {
+                        guard let newProfile = self.dbManager.getProfile(id: oldProfile.id) else {
+                            noteCell.isEnabled = false
                             continue
                         }
                         
-                        attachment.fileWrapper = self.fileWrapperOfProfile(with: String(newProfile!.id), data: NSKeyedArchiver.archivedData(withRootObject: newProfile!))
+                        attachment.fileWrapper = self.fileWrapperOfProfile(with: String(newProfile.id), data: NSKeyedArchiver.archivedData(withRootObject: newProfile))
                         noteCell.update()
+                        noteCell.isEnabled = true
                     }
                 } else if let urlCell = attachment.attachmentCell as? URLAttachmentCell {
                     //  基準パスを更新
@@ -273,13 +276,16 @@ extension MTextView: NSTextViewDelegate {
     }
     // NoteAttachmentをダブルクリックされたときにノートを移動する
     func textView(_ textView: NSTextView, doubleClickedOn cell: NSTextAttachmentCellProtocol, in cellFrame: NSRect, at charIndex: Int) {
-        if let noteCell = cell as? NoteAttachmentCell,
+        
+        guard let noteCell = cell as? NoteAttachmentCell,
             let data = noteCell.attachment?.fileWrapper?.regularFileContents,
-            let profile = NSKeyedUnarchiver.unarchiveObject(with: data) as? NoteProfile {
-            
-            let id = profile.id
-            
-            self.controller.itemsViewController.select(id: id)
+            let profile = NSKeyedUnarchiver.unarchiveObject(with: data) as? NoteProfile else {
+                return
+        }
+        
+        // 存在するノートなら実行
+        if noteCell.isEnabled {
+            self.mTextViewDelegate?.mTextViewNoteAttachmentCellInvoked(profile: profile)
         }
     }
     // URLAttachmentをクリックされたときにメニューを表示する
@@ -371,4 +377,8 @@ extension MTextView: QLPreviewPanelDataSource {
         self.QLPanel = nil
         self.previewingURL = nil
     }
+}
+
+protocol MTextViewDelegate {
+    func mTextViewNoteAttachmentCellInvoked(profile: NoteProfile)
 }

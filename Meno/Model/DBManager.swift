@@ -19,6 +19,17 @@ class DBManager: NSObject {
             return self.filePath?.deletingLastPathComponent
         }
     }
+    func create(url: URL) -> Bool {
+        db = FMDatabase(url: url)
+        
+        let result = db!.open()
+        
+        if result {
+            db!.executeUpdate("CREATE TABLE items (id integer auto_increment primary key, title text, content blob, string text, date_update text, date_create text, order_number integer)", withArgumentsIn: [])
+        }
+        
+        return result
+    }
     /// データベースファイルを開く
     func open(url: URL, completed: (Bool) -> Void) {
         db = FMDatabase(url: url)
@@ -30,22 +41,29 @@ class DBManager: NSObject {
         }
         completed(result)
     }
+    // データベースをクローズする
+    @discardableResult
+    func close() -> Bool {
+        return self.db?.close() ?? false
+    }
     /// データベースファイルからすべてのNoteProfileを読み込む．
-    func getProfiles() -> [NoteProfile] {
-        let results = db?.executeQuery("SELECT ID, TITLE, STRING, DATE_UPDATE, DATE_CREATE, ORDER_NUMBER FROM ITEMS", withParameterDictionary: nil)
+    func getProfiles() -> [NoteProfile]? {
         var profiles: [NoteProfile] = []
         
-        if let results = results {
-            while results.next() {
-                let title = results.string(forColumn: "TITLE") ?? ""
-                let id = results.int(forColumn: "ID")
-                let string = results.string(forColumn: "STRING") ?? ""
-                let updatedDate = results.date(forColumn: "DATE_UPDATE") ?? Date()
-                let createdDate = results.date(forColumn: "DATE_CREATE") ?? Date()
-                let order = results.int(forColumn: "ORDER_NUMBER")
-                
-                profiles.append(NoteProfile(id: id, title: title, string: string, updatedDate: updatedDate, createdDate: createdDate, order: order))
-            }
+        // 失敗
+        guard let results = db?.executeQuery("SELECT ID, TITLE, STRING, DATE_UPDATE, DATE_CREATE, ORDER_NUMBER FROM ITEMS", withParameterDictionary: nil) else {
+            return nil
+        }
+        
+        while results.next() {
+            let title = results.string(forColumn: "TITLE") ?? ""
+            let id = results.int(forColumn: "ID")
+            let string = results.string(forColumn: "STRING") ?? ""
+            let updatedDate = results.date(forColumn: "DATE_UPDATE") ?? Date()
+            let createdDate = results.date(forColumn: "DATE_CREATE") ?? Date()
+            let order = results.int(forColumn: "ORDER_NUMBER")
+            
+            profiles.append(NoteProfile(id: id, title: title, string: string, updatedDate: updatedDate, createdDate: createdDate, order: order))
         }
         
         return profiles
@@ -55,7 +73,10 @@ class DBManager: NSObject {
         let results = db?.executeQuery("SELECT ID, TITLE, STRING, DATE_UPDATE, DATE_CREATE, ORDER_NUMBER FROM ITEMS WHERE ID=?", withArgumentsIn: [id])
         
         if let results = results {
-            results.next()
+            if !results.next() {
+                return nil
+            }
+            
             let id = results.int(forColumn: "ID")
             let title = results.string(forColumn: "TITLE") ?? ""
             let string = results.string(forColumn: "STRING") ?? ""
@@ -95,7 +116,7 @@ class DBManager: NSObject {
         return db!.executeUpdate("UPDATE ITEMS SET CONTENT=? WHERE ID=\(id)", withArgumentsIn: [data])
     }
     /// 新たなノートを作成する．
-    // - returns: 新規作成したノートのid．
+    // - returns: 新規作成したノートのid．失敗ならnil．
     func addNew() -> Int32? {
         if db!.executeUpdate("INSERT INTO ITEMS(TITLE, CONTENT, STRING, DATE_UPDATE, DATE_CREATE) VALUES(?, ?, ?, ?, ?)", withArgumentsIn: ["", NSKeyedArchiver.archivedData(withRootObject: NSAttributedString()), "", NSDate(), NSDate()]) {
             let results = db!.executeQuery("SELECT ID FROM ITEMS WHERE ROWID = last_insert_rowid()", withParameterDictionary: nil)
@@ -107,6 +128,7 @@ class DBManager: NSObject {
         return nil
     }
     // ノートを削除する．
+    // - returns: 成功ならTrue
     func removeItem(id: Int32) -> Bool {
         return db!.executeUpdate("DELETE FROM ITEMS WHERE ID = \(id)", withParameterDictionary: [:])
     }

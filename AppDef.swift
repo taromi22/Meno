@@ -14,3 +14,4 @@ let LWinW = CGFloat(800)
 let LWinH = CGFloat(600)
 let LWinSize = CGSize(width: LWinW, height: LWinH)
 let LWinTitle = "Meno"
+let LWinMinSize = CGSize(width: 400, height: 200)

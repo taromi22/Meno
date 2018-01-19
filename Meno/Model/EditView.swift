@@ -9,18 +9,19 @@
 import Cocoa
 
 class EditView: NSView {
-    let dateHeight: CGFloat = 18.0
+    let dateHeight: CGFloat = 22.0
     let titleHeight: CGFloat = 38.0
     let dateMargin: NSSize = NSMakeSize(0.0, 3.0)
     let titleMargin: NSSize = NSMakeSize(8.0, 5.0)
+    let transitionButtonWidth: CGFloat = 100.0
     
     let titleFontSize: CGFloat = 24.0
     let mainFontSize: CGFloat = 13.0
     
-    var controller: EditViewController! {
+    var dbManager: DBManager! {
         didSet {
             if let textView = self.textView {
-                textView.controller = self.controller
+                textView.dbManager = self.dbManager
             }
         }
     }
@@ -29,10 +30,24 @@ class EditView: NSView {
             return dateHeight + titleHeight + dateMargin.height*2 + titleMargin.height*2
         }
     }
+    var isBackButtonHidden: Bool = false{
+        didSet {
+            self.backButton.isHidden = self.isBackButtonHidden
+        }
+    }
+    var backButtonText: String? {
+        get {
+            return self.backButton.title
+        }
+        set {
+            self.backButton.title = newValue ?? ""
+        }
+    }
     
     var delegate: EditViewDelegate?
     var dateField: NSTextField!
     var titleField: NSTextField!
+    var backButton: NSButton!
     var textView: MTextView!
     var minSize: NSSize = NSMakeSize(0, 0) {
         didSet {
@@ -59,16 +74,26 @@ class EditView: NSView {
         super.init(frame: frameRect)
         
         // 日時ラベル
-        dateField = NSTextField(frame: NSMakeRect(frameRect.origin.x + self.dateMargin.width, frameRect.height - self.dateHeight - self.dateMargin.height, frameRect.width - self.dateMargin.width*2, dateHeight))
+        dateField = NSTextField(frame: NSMakeRect(frameRect.origin.x + self.dateMargin.width + self.transitionButtonWidth, frameRect.height - self.dateHeight - self.dateMargin.height, frameRect.width - self.dateMargin.width*2 - self.transitionButtonWidth*2, self.dateHeight))
         dateField.autoresizingMask = [.width, .minYMargin]
         dateField.textColor = NSColor.gray
         dateField.isBordered = false
         dateField.isEditable = false
         dateField.alignment = .center
-        self.addSubview(dateField)
+        self.addSubview(self.dateField)
+        // 戻るボタン
+        backButton = NSButton(frame: NSMakeRect(frameRect.origin.x + self.dateMargin.width, frameRect.height - self.dateHeight - self.dateMargin.height, self.transitionButtonWidth, self.dateHeight))
+        backButton.autoresizingMask = [.maxXMargin, .minYMargin]
+        backButton.title = "< 戻る"
+        backButton.setButtonType(.momentaryLight)
+        backButton.bezelStyle = .regularSquare
+        backButton.target = self
+        backButton.isHidden = true
+        backButton.action = #selector(self.backButtonClicked)
+        self.addSubview(self.backButton)
         
         // タイトルフィールド
-        titleField = NSTextField(frame: NSMakeRect(frameRect.origin.x + titleMargin.width, frameRect.height - (dateHeight + dateMargin.height*2 + titleHeight + titleMargin.height), frameRect.width - titleMargin.width*2, self.titleHeight))
+        titleField = NSTextField(frame: NSMakeRect(frameRect.origin.x + self.titleMargin.width, frameRect.height - (self.dateHeight + self.dateMargin.height*2 + titleHeight + self.titleMargin.height), frameRect.width - self.titleMargin.width*2, self.titleHeight))
         titleField.cell = TitleFieldCell()
         titleField.backgroundColor = .white
         titleField.isEnabled = true
@@ -77,7 +102,7 @@ class EditView: NSView {
         titleField.autoresizingMask = [.width, .minYMargin]
         titleField.font = NSFont.systemFont(ofSize: self.titleFontSize, weight: .heavy)
         titleField.delegate = self
-        self.addSubview(titleField)
+        self.addSubview(self.titleField)
         
         // コンテンツビュー
         let textStorage = NSTextStorage()
@@ -96,7 +121,8 @@ class EditView: NSView {
         textView.textContainer?.widthTracksTextView = true
         textView.textContainerInset = NSSize(width: 20.0, height: 10.0)
         textView.importsGraphics = true
-        textView.controller = self.controller
+        textView.dbManager = self.dbManager
+        textView.mTextViewDelegate = self
         self.addSubview(textView)
         
         // textViewのサイズ変更を監視し，それに合わせてサイズ変更
@@ -130,6 +156,10 @@ class EditView: NSView {
         
         self.minSize = NSMakeSize(self.minSize.width + dWidth, self.minSize.height + dHeight)
     }
+    
+    @objc func backButtonClicked() {
+        self.delegate?.editViewBackButtonClicked()
+    }
 }
 
 extension EditView: NSTextFieldDelegate {
@@ -138,7 +168,15 @@ extension EditView: NSTextFieldDelegate {
     }
 }
 
+extension EditView: MTextViewDelegate {
+    func mTextViewNoteAttachmentCellInvoked(profile: NoteProfile) {
+        self.delegate?.editViewNoteCellTriggered(profile: profile)
+    }
+}
+
 protocol EditViewDelegate: class {
     func editViewTitleChanged(string: String)
     func editViewContentChanged()
+    func editViewBackButtonClicked()
+    func editViewNoteCellTriggered(profile: NoteProfile)
 }

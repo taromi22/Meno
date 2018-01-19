@@ -13,8 +13,9 @@ class ItemsViewController: NSViewController, NSTableViewDataSource, NSTableViewD
     @IBOutlet var arrayController: NSArrayController!
     
     var editViewController: EditViewController!
-    var preSelectedProfile: NoteProfile? = nil
+    var transitionManager: NoteTransitionManager!
     @objc var items = [NoteProfile]()
+    var preSelectedItem: NoteProfile?
     
     var selectedProfile: NoteProfile? {
         get {
@@ -72,37 +73,30 @@ class ItemsViewController: NSViewController, NSTableViewDataSource, NSTableViewD
         return true
     }
     
-    func tableView(_ tableView: NSTableView, selectionIndexesForProposedSelection proposedSelectionIndexes: IndexSet) -> IndexSet {
+    // 選択が変わったとき，現在のノートを保存して新しいノートを読み込む
+    // ユーザーが選択したかどうかを区別するため，クリックアクションで拾っている
+    @IBAction func Clicked(_ sender: Any) {
+        guard let newProfile = self.selectedProfile else {
+            return
+        }
         
-        return proposedSelectionIndexes
-    }
-    
-    func tableViewSelectionDidChange(_ notification: Notification) {
-        if let newProfile = self.selectedProfile {
-        
+        if newProfile != self.preSelectedItem {
             self.editViewController.saveAndLoad(newProfile: newProfile)
-            self.preSelectedProfile = newProfile
+            self.preSelectedItem = self.selectedProfile
+            self.transitionManager.clear()
+            self.editViewController.contentView.isBackButtonHidden = true
         }
     }
-    
+
     // 新たなノートを追加する．
     func addItem(_ item: NoteProfile) {
-        self.preSelectedProfile = selectedProfile
-        
         self.arrayController.insert(item, atArrangedObjectIndex: 0)
-
-        self.preSelectedProfile = selectedProfile
+        
+        self.editViewController.saveAndLoad(newProfile: item)
     }
     // 選択したノートを削除する．
     func removeSelectedItem() {
-        // ArrayControllerのselectionIndexesとselectedObjectsを両方使うことにする．両者が常に一致しているという前提
         let selectedIndexes = self.arrayController.selectionIndexes
-        let profiles = self.selectedProfiles
-        
-        // preSelectedProfileを破棄する．無駄な更新をしないように．
-        if self.preSelectedProfile != nil && profiles?.contains(preSelectedProfile!) ?? false {
-            self.preSelectedProfile = nil
-        }
         
         // 削除のアニメーション．アニメーション終了と同時にArrayControllerに削除の指示をする
         NSAnimationContext.runAnimationGroup({
@@ -112,6 +106,9 @@ class ItemsViewController: NSViewController, NSTableViewDataSource, NSTableViewD
             self.arrayController.remove(atArrangedObjectIndexes: selectedIndexes)
         }
         
+        if let profile = self.selectedProfile {
+            self.editViewController.saveAndLoad(newProfile: profile)
+        }
     }
     
     // ノートのリストを読み込む
@@ -127,6 +124,7 @@ class ItemsViewController: NSViewController, NSTableViewDataSource, NSTableViewD
         self.arrayController.rearrangeObjects()
         // 一番上を選択
         self.arrayController.setSelectionIndex(0)
+        self.editViewController.saveAndLoad(newProfile: self.selectedProfile!)
         
         didSet()
     }
@@ -155,6 +153,7 @@ class ItemsViewController: NSViewController, NSTableViewDataSource, NSTableViewD
         for profile in items {
             if profile.id == id {
                 self.tableView.selectRowIndexes(IndexSet(integer: count), byExtendingSelection: false)
+                self.editViewController.saveAndLoad(newProfile: profile)
             }
             count += 1
         }

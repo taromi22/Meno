@@ -16,6 +16,7 @@ class EditViewController: NSViewController {
     var fontManager: NSFontManager!
     var formatter: DateFormatter!
     var itemsViewController: ItemsViewController!
+    var transitionManager: NoteTransitionManager!
     
     var textView: MTextView! {
         get {
@@ -32,7 +33,11 @@ class EditViewController: NSViewController {
             return contentView.dateField
         }
     }
-    var dbManager: DBManager?
+    var dbManager: DBManager! {
+        didSet {
+            self.contentView.dbManager = self.dbManager
+        }
+    }
     var showingProfile: NoteProfile?
     var text: String {
         return self.textView.string
@@ -62,7 +67,7 @@ class EditViewController: NSViewController {
         scrollView.autoresizingMask = [.width, .height]
         
         self.contentView = EditView(frame: NSMakeRect(0, 0, scrollView.contentSize.width, scrollView.contentSize.height))
-        self.contentView.controller = self
+        self.contentView.dbManager = self.dbManager
         self.contentView.minSize = NSMakeSize(0.0, scrollView.contentSize.height)
         self.contentView.autoresizingMask = [.width, .minYMargin]
         self.contentView.delegate = self
@@ -79,10 +84,10 @@ class EditViewController: NSViewController {
     /// 現在開いているノートを必要ならば保存したあと，指定されたノートを表示する
     ///
     func saveAndLoad(newProfile: NoteProfile) {
-        // 保存処理
+        // 保存処理．削除したあとなど，データベースに該当ファイルがない場合もある
         if isModified, let oldProfile = self.showingProfile {
-            dbManager!.saveProfile(profile: oldProfile)
-            dbManager!.saveNote(id: oldProfile.id, content: self.textStorage!)
+            dbManager.saveProfile(profile: oldProfile)
+            dbManager.saveNote(id: oldProfile.id, content: self.textStorage!)
         }
         self.isModified = false
         
@@ -95,10 +100,10 @@ class EditViewController: NSViewController {
             self.showingProfile = newProfile
             
             //  ノートへのリンクを更新
-            self.contentView.textView.updateAttachments()
+            self.textView.updateAttachments()
         }
     }
-    // 現在開いているノートを必要ならば保存する．
+    /// 現在開いているノートを必要ならば保存する．
     func save() {
         
         if isModified, let oldProfile = self.showingProfile {
@@ -123,6 +128,7 @@ class EditViewController: NSViewController {
 }
 
 extension EditViewController: EditViewDelegate {
+    
     func editViewTitleChanged(string: String) {
         self.showingProfile?.title = self.titleField.stringValue
         
@@ -130,5 +136,24 @@ extension EditViewController: EditViewDelegate {
     }
     func editViewContentChanged() {
         self.didChange()
+    }
+    func editViewBackButtonClicked() {
+        if let previousNote = self.transitionManager.back() {
+            self.itemsViewController.select(id: previousNote.id)
+        }
+        if !self.transitionManager.canBack {
+            self.contentView.isBackButtonHidden = true
+        } else {
+            self.contentView.backButtonText = "< " + (self.transitionManager.previousNoteTitle ?? "")
+        }
+    }
+    func editViewNoteCellTriggered(profile: NoteProfile) {
+        if let oldProfile = self.showingProfile {
+            self.transitionManager.add(noteProfile: oldProfile)
+        }
+        self.itemsViewController.select(id: profile.id)
+        self.contentView.isBackButtonHidden = false
+        
+        self.contentView.backButtonText = "< " + (self.transitionManager.previousNoteTitle ?? "" )
     }
 }
